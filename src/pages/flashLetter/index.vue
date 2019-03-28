@@ -19,13 +19,13 @@
             <span class="title">{{item.title}}</span>
           </van-col>
           <van-col :span="4" style="text-align: right;">
-            <van-tag :color="item.status == 1 ? '#59b0a2' : 'rgb(120,120,120)'">{{item.status_link}}</van-tag>
+            <van-tag :color="item.status == 1 ? '#59b0a2' : 'rgb(120,120,120)'">{{item.status ? '通过' : '待审核'}}</van-tag>
           </van-col>
         </van-row>
-        <div class="content">{{item.content}}</div>
+        <div class="content">【{{item.sign}}】{{item.content}}</div>
         <van-row>
           <van-col :span="12">
-            <span class="time">创建时间: {{item.created_at}}</span>
+            <span class="time">创建时间: {{item.u_times}}</span>
           </van-col>
           <van-col :span="12" style="text-align:right; font-size: 0">
             <span class="delete-btn custom-btn" @click="deleteModel(item.id)">
@@ -37,9 +37,9 @@
               v-if="item.status == 1"
               @click="showSendMsg(item.id, item.type)"
             >
-              <img src="./imgs/flash.png" alt v-if="item.type === 1">
-              <img src="./imgs/message.png" alt v-if="item.type === 2">
-              <span class="text">{{item.type === 1?'闪信群发' :'短信群发'}}</span>
+              <img src="./imgs/message.png" alt v-if="item.types === 1">
+              <img src="./imgs/flash.png" alt v-if="item.types === 2">
+              <span class="text">{{item.types === 1?'短信群发' :'闪信群发'}}</span>
             </span>
           </van-col>
         </van-row>
@@ -48,7 +48,7 @@
     </scroller>
     <van-popup v-model="isShowMsgBox" :overlay="false" position="right">
       <van-nav-bar
-        :title="Number(this.$route.params.id) === 1 ? '群发闪信' : '群发短信'"
+        :title="Number(this.$route.params.id) === 1 ? '群发短信' : '群发闪信'"
         @click-left="isShowMsgBox = false"
         left-arrow
       />
@@ -189,10 +189,10 @@ export default {
     this.restWord = Number(this.$route.params.id) === 1 ? 50 : 52; // 初始化字数
     if (Number(this.$route.params.id) === 1) {
       this.messageOrflashId = "type=1";
-      this.navTitle = "闪信模板列表";
+      this.navTitle = "短信模板列表";
     } else if (Number(this.$route.params.id) === 2) {
       this.messageOrflashId = "type=2";
-      this.navTitle = "短信模板列表";
+      this.navTitle = "闪信模板列表";
     }
     this.loadinglayer = document.getElementsByClassName("loading-layer");
     // console.info(this.loadinglayer);
@@ -229,13 +229,16 @@ export default {
       }, 200);
     },
     deleteModel(valueId) {
+      let params = {
+        id: valueId
+      };
       Dialog.confirm({
         title: "确定要删除吗？"
       })
         .then(() => {
-          this.$delete("group/letter/" + valueId, "", res => {
+          this.$post("client/deltemp", params, res => {
             console.info("删除", res);
-            if (res.data.status === 1) {
+            if (res.data.code === 200) {
               Toast({
                 message: res.data.msg,
                 position: "middle",
@@ -323,24 +326,21 @@ export default {
     }, // 添加模板
     getModelList() {
       this.$get(
-        "group/letter/?" +
-          this.messageOrflashId +
-          "&pageSize=8&page=" +
-          this.page,
+        `client/smslist?types=${this.$route.params.id}&page=${this.page}&limit=8` ,
         "",
         res => {
-          if (res.data.status === 1) {
+          if (res.data.code === 200) {
             if (this.page === 1) {
               this.list = [];
               // console.info("第一个if:打印this.list", this.list);
             }
-            if (res.data.data.length === 0) {
+            if (res.data.data.list.length === 0) {
               this.hasData = 1;
               // console.info("第二个if:打印this.hasData", this.hasData);
             } else {
               this.list = [];
-              for (let key in res.data.data) {
-                this.list.push(res.data.data[key]);
+              for (let key in res.data.data.list) {
+                this.list.push(res.data.data.list[key]);
               }
               // console.info("第二个if的else:打印this.list", this.list);
             }
@@ -356,7 +356,7 @@ export default {
               message: res.data.msg
             });
           }
-          // console.info('页数', this.page);
+          console.info('res短信闪信', res);
         }
       );
     },

@@ -8,8 +8,15 @@
       :fixed="true"
       @click-right="onClickRight"
     />
-    <van-row style="padding: 45px 15px 0px 15px">
-      <template v-if="probeList.length > 0" v-for="(items,index) in probeList">
+    <scroller
+      style="padding-top:0px"
+      :on-refresh="refresh"
+      :on-infinite="infinite"
+      ref="myscroller"
+      noDataText="我是有底线的"
+    >
+      <van-row style="padding: 45px 15px 0px 15px">
+      <template v-if="list.length > 0" v-for="(items,index) in list">
         <van-col
           :span="24"
           style="padding: 10px 0; border-bottom: 0.5px solid #eee;"
@@ -18,15 +25,16 @@
           <van-col :span="16">
             <h2 class="title">感知器名称 {{items.name}}</h2>
             <p class="time-wrap">
-              <span class="time">感知器id {{items.number_id}}</span>
+              <span class="time">感知器id {{items.code}}</span>
+            </p>
+            <p class="time-wrap">
+              <span class="time">感知器sim {{items.sim}}</span>
             </p>
           </van-col>
         </van-col>
       </template>
-      <template v-else>
-        <div style="margin: auto">暂无数据</div>
-      </template>
     </van-row>
+    </scroller>
     <van-popup v-model="isShow" style="width: 100%;">
       <van-cell-group>
         <van-field
@@ -43,6 +51,13 @@
           clearable
           label="感知器id"
           placeholder="请输入感知器id"
+        />
+        <van-field
+          v-model="probeSim"
+          required
+          clearable
+          label="感知器sim"
+          placeholder="请输入感知器sim"
         />
       </van-cell-group>
       <div class="create-wrap" @click="commitProbe">
@@ -75,22 +90,67 @@
         },
         name: '',
         probeId: '',
+        probeSim: '',
         isShow: false,
-        probeList: []
+        list: [],
+        hasData: 0,
+        page: 1,
+        limit: 10
       };
     },
+    watch: {
+
+    },
     mounted() {
-      this.$get(
-        "probe/binding?user_id=" + this.user.telId,
-        "",
-        res => {
-          console.log('返回的结果RES：', res);
-          this.probeList = res.data.data;
-          console.log('this.probeList:', this.probeList);
-        }
-      );
+      this.getDataList();
     },
     methods: {
+      getDataList() {
+        this.$get(`client/boxlist?page=${this.page}&limit=${this.limit}`,
+          "",
+          result => {
+          console.log('result.data.data.list:', result.data.data.list);
+          if (result.data.data.list.length) {
+            this.list = result.data.data.list;
+            // if(result.data.data.list.length > 10){
+            //   this.hasData = 1
+            // }
+          } else {
+            this.hasData = 1; // 返回没有数据
+          }
+          if (this.list.length === 0) {
+            if (this.loadinglayer.length) {
+              this.loadinglayer[0].style.opacity = 0;
+            }
+          }
+        });
+      },
+      refresh(done) {
+        setTimeout(() => {
+          this.page = 1;
+          this.list = [];
+          this.hasData = 0;
+          this.getDataList();
+          done();
+        }, 1500);
+      },
+      infinite(done) {
+        // 加载更多插件
+        if (!this.hasData) {
+          console.log('this.hasData111111111:', this.hasData);
+          // 代表没有 更多数据了
+          done(true);
+        } else {
+          console.log('this.hasData22222222:', this.hasData);
+          setTimeout(() => {
+            this.getDataList();
+            setTimeout(() => {
+              done();
+              this.page++;
+            }, 400);
+          }, 1000);
+        }
+      },
       onClickLeft() {
         this.$router.push({path: 'setting'});
       },
@@ -99,36 +159,25 @@
       },
       commitProbe() {
         this.isShow = false;
-        this.$post("probe/binding?user_id=" + this.user.telId + "&name=" + this.name + "&number_id=" + this.probeId,
-          "",
+        let params = {
+          name: this.name,
+          code: this.probeId,
+          sim: this.probeSim
+        };
+        this.$post("client/dobox",
+          params,
           res => {
-          console.log(res.data);
-            if (res.data.code === 412) {
-              Dialog.alert({
-                title: "提示",
-                message: res.data.msg
-              });
-              return false;
+            if (res.data.code === 200) {
+              this.getDataList()
+            } else {
+              this.$status(res.data.msg);
             }
-            this.probeList.push({
-              created_at: res.data.data.created_at,
-              deleted_at: '',
-              id: res.data.data.id,
-              lat: '',
-              lng: '',
-              name: res.data.data.name,
-              number_id: res.data.data.number_id,
-              pid: res.data.data.pid,
-              status: res.data.data.status,
-              updated_at: res.data.data.updated_at,
-              user_id: res.data.data.user_id,
-              user_id_link: {}
-            });
           }
         );
         this.name = '';
         this.probeId = '';
-      }
+        this.probeSim = '';
+      },
     }
   };
 </script>

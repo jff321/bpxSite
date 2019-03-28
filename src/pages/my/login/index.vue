@@ -55,42 +55,27 @@ export default {
         let _this = this;
         let params = { phone: this.phone, password: this.password };
         this.$post(
-          "common/session",
+          "client/login",
           params,
           function(result) {
             // 发起登录
             console.info("登陆返回数据", result);
-            let status = result.data.status;
             if (result.data.code === 200) {
-              if (status * 1 > 0) {
-                localStorage.setItem("token", result.data.data.api_token);
-                localStorage.setItem("telephone", _this.phone);
+              localStorage.setItem("token", result.data.data.auth_token);
+              localStorage.setItem("telephone", _this.phone);
 
-                localStorage.setItem("telId", result.data.data.id);
-                localStorage.setItem("user_type", result.data.data.user_type);
-                console.log('result:', result);
-                localStorage.setItem("company_name", result.data.data.company_name);
-                localStorage.setItem("company_photo", result.data.data.company_photo);
-                _this.$router.push({ name: "home" });
-              }
+              // localStorage.setItem("uid", result.data.data.user.uid);
+              // localStorage.setItem("user_type", result.data.data.user_type);
+              // console.log('result:', result);
+              localStorage.setItem("company_name", result.data.data.user.company);
+              localStorage.setItem("company_photo", result.data.data.user.logo_url);
+              _this.$router.push({ name: "home" });
             } else {
               Dialog.alert({
                 title: "提示",
                 message: result.data.msg
               });
             }
-            // Dialog.alert(
-            //   {
-            //     title: '提示',
-            //     message: result.data.msg
-            //   })
-            //   .then(() => {
-            //   if (status * 1 > 0) {
-            //     localStorage.setItem('token', result.data.data.api_token);
-            //     localStorage.setItem('telephone', _this.phone);
-            //     _this.$router.push({name: 'home'});
-            //   }
-            // });
           },
           true,
           "登录中..."

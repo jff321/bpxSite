@@ -14,7 +14,7 @@ const myconfig = {
   }
 };
 axios.interceptors.request.use((config) => {
-  config.headers.ispc = 1;
+  // config.headers.ispc = 1;
   if (localStorage.getItem('token')) {
     config.headers.Authorization = myconfig.type + ' ' + localStorage.getItem('token');
   } else { // 登录过验证token

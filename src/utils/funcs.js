@@ -237,5 +237,12 @@ export default{
       );
       // }
     };
+    Vue.prototype.$status = function (msg) {
+      Dialog.alert({
+        title: '提示',
+        message: msg
+      });
+      return false;
+    };
   }
 };

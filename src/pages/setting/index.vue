@@ -46,9 +46,9 @@
           title="短信管理"
           icon="pending-evaluate"
           is-link
-          @click="href('flashletter', {id: 2})"
+          @click="href('flashletter', {id: 1})"
         />
-        <van-cell title="闪信管理" icon="chat" is-link @click="href('flashletter', {id: 1})"/>
+        <van-cell title="闪信管理" icon="chat" is-link @click="href('flashletter', {id: 2})"/>
         <van-cell title="个人中心" icon="contact" is-link to="personalCenter"/>
         <van-cell title="感知器管理" icon="aim" is-link to="probe"/>
         <van-cell title="费用中心" icon="pending-orders" to="/moneydetail" is-link />
@@ -115,16 +115,21 @@ export default {
   },
   methods: {
     logout() {
-      console.log("logout");
-      // Dialog.alert('提示', )
       Dialog.confirm({
         title: "提示",
         message: "您确定要退出登录吗？"
       })
         .then(() => {
           // on confirm
-          localStorage.removeItem("token");
-          this.$router.push("/login/index");
+          this.$post('client/logout', localStorage.getItem('token'), (result) => {
+            console.log('result:', result);
+            if (result.data.code === 200) {
+              localStorage.removeItem("token");
+              this.$router.push("/login/index");
+            } else {
+              this.$status(result.data.msg);
+            }
+          });
         })
         .catch(() => {
           // on cancel

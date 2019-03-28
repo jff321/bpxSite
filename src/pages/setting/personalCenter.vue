@@ -75,7 +75,7 @@
           <!--<div class="img">-->
             <el-upload
               class="avatar-uploader"
-              action="http://c.adbpx.com/api/manager/upload/files"
+              action="http://192.168.0.120/client/upload/image"
               :show-file-list="false"
               accept="image/*"
               :on-preview="handlePictureCardPreview"
@@ -92,7 +92,7 @@
           <!--<div class="img">-->
           <el-upload
             class="avatar-uploader"
-            action="http://c.adbpx.com/api/manager/upload/files"
+            action="http://192.168.0.120/client/upload/image"
             :show-file-list="false"
             accept="image/*"
             :on-success="handleAvatarSuccess2">
@@ -107,8 +107,9 @@
         <div class="imgBox">
           <!--<div class="img">-->
           <el-upload
+            :headers="myHeaders"
             class="avatar-uploader"
-            action="http://c.adbpx.com/api/manager/upload/files"
+            action="http://192.168.0.120/client/upload/image"
             :show-file-list="false"
             accept="image/*"
             :on-success="handleAvatarSuccess3">
@@ -156,40 +157,45 @@
         cardName: '',
         idCardUrl: '',
         idCardName: '',
-        isReadOnly: false
+        isReadOnly: false,
+        myHeaders:{
+          Authorization: localStorage.getItem('token')
+        },
       };
     },
     mounted() {
-      this.$get("common/user?id=" + this.user.telId, "", res => {
-        // 登录账号
-        this.phone = res.data.data[0].phone;
-        // 公司名称
-        this.company = res.data.data[0].company_name;
-        console.log('公司名称：', this.company);
-        // 公司签名
-        this.sign = res.data.data[0].sign;
+      this.$get("client/myinfo", '', res => {
+        console.log('res:', res);
+        // // 登录账号
+        this.phone = res.data.mobile;
+        // // 公司名称
+        this.company = res.data.company;
+        // console.log('公司名称：', this.company);
+        // // 公司签名
+        this.sign = res.data.sign;
         if (this.sign === null || '') {
           this.isReadOnly = false;
         } else {
           this.isReadOnly = true;
         }
-        // 负责人姓名
-        this.name = res.data.data[0].name;
-        // 可拨打手机号
-        this.manyPhone = res.data.data[0].phone_dial;
-        this.phone2 = this.manyPhone.join(",");
-        // 公司营业执照名字
-        this.imageName = res.data.data[0].company_photo;
-        // 公司营业执照路径
-        this.imageUrl = res.data.data[0].company_photo_link.big;
-        // 身份证头像
-        this.idCardName = res.data.data[0].id_card;
-        // 身份证路径
-        this.idCardUrl = res.data.data[0].id_card_link.big;
-        // 头像名字
-        this.cardName = res.data.data[0].picture;
-        // 头像路径
-        this.cardUrl = res.data.data[0].picture_link.big;
+        // // 负责人姓名
+        this.name = res.data.uname;
+        // // 可拨打手机号
+        this.manyPhone = res.data.phone;
+        // this.phone2 = this.manyPhone.join(",");
+        this.phone2 = this.manyPhone;
+        // // 公司营业执照名字
+        // this.imageName = res.data.data[0].company_photo;
+        // // 公司营业执照路径
+        this.imageUrl = res.data.biz_url;
+        // // 身份证头像
+        // this.idCardName = res.data.data[0].id_card;
+        // // 身份证路径
+        this.idCardUrl = res.data.id_url;
+        // // 头像名字
+        // this.cardName = res.data.data[0].picture;
+        // // 头像路径
+        this.cardUrl = res.data.logo_url;
       });
     },
     methods: {
@@ -202,24 +208,25 @@
       // 上传营业执照
       handleAvatarSuccess(res, file) {
         this.imageName = res.data.name;
-        this.imageUrl = res.data.url;
+        this.imageUrl = res.data.big_url;
         console.log('this.imageUrl服务器:', this.imageUrl);
       },
       // 上传身份证
       handleAvatarSuccess2(res, file) {
         this.idCardName = res.data.name;
-        this.idCardUrl = res.data.url;
+        this.idCardUrl = res.data.big_url;
       },
       // 上传公司LOGO
       handleAvatarSuccess3(res, file) {
         this.cardName = res.data.name;
-        this.cardUrl = res.data.url;
+        this.cardUrl = res.data.big_url;
       },
       // 清除多个手机号
       clearPhone2() {
         console.log('this.phone2:', this.phone2);
       },
       commitInfo() {
+        console.log('query in');
         if (this.phone === '') {
           Dialog.alert({
             title: "提示",
@@ -234,18 +241,18 @@
           });
           return false;
         }
-        for (let i in this.manyPhone) {
-          console.log('this.manyPhone:', this.manyPhone);
-          let myreg = /^(13[0-9]|14[579]|15[0-3,5-9]|16[6]|17[0135678]|18[0-9]|19[89])\d{8}$/;
-          if (!myreg.test(this.manyPhone[i])) {
-            Dialog.alert({
-              title: "提示",
-              message: "手机号格式不对"
-            });
-            this.manyPhone.splice(i, 1);
-            return false;
-          }
-        }
+        // for (let i in this.phone2) {
+        //   console.log('this.manyPhone:', this.phone2);
+        //   let myreg = /^(13[0-9]|14[579]|15[0-3,5-9]|16[6]|17[0135678]|18[0-9]|19[89])\d{8}$/;
+        //   if (!myreg.test(this.phone2[i])) {
+        //     Dialog.alert({
+        //       title: "提示",
+        //       message: "手机号格式不对"
+        //     });
+        //     this.phone2.splice(i, 1);
+        //     return false;
+        //   }
+        // }
         if (this.newPwd === '') {
           Dialog.alert({
             title: "提示",
@@ -295,22 +302,19 @@
           });
           return false;
         }
-        console.log('this.phone2提交提交提交:', this.phone2);
         let params = {
-          id: this.user.telId,
-          user_type: this.user.user_type,
-          phone: this.phone,
-          phone_dial: this.phone2,
-          password: this.newPwd,
-          name: this.name,
-          company_name: this.company,
-          company_photo: this.imageName, // 公司营业执照
-          picture: this.cardName, // 公司头像
-          id_card: this.idCardName, // 法人或身份证部件
-          sign: this.sign
+          pwd: this.newPwd,
+          company: this.company,
+          sign: this.sign,
+          uname: this.name,
+          phone: this.phone2,
+          biz_url: this.imageUrl,
+          id_url: this.idCardUrl,
+          logo_url: this.cardUrl
         };
-        this.$put("common/user/" + this.user.telId, params, res => {
-          if (res.data.status === 1) {
+        this.$post("client/doinfo", params, res => {
+          console.log('res:', res);
+          if (res.data.code === 200) {
             this.$message({
               message: '修改成功！',
               type: 'success'

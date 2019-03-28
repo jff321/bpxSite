@@ -1,7 +1,7 @@
 <template>
   <div class="form-wrap">
     <van-nav-bar
-      :title="Number(this.$route.params.id) === 1 ? '创建闪信模板' : '创建短信模板'"
+      :title="Number(this.$route.params.id) === 1 ? '创建短信模板' : '创建闪信模板'"
       @click-left="onClickLeft"
       left-arrow
     />
@@ -124,9 +124,10 @@ export default {
     }
   },
   mounted() {
-    this.$get("common/user?id=" + this.user.telId, "", res => {
-      if (res.data.status === 1) {
-        this.signName = res.data.data[0].sign;
+    this.$get("client/myinfo", "", res => {
+      console.log('res:', res);
+      if (res.status === 200) {
+        this.signName = res.data.sign;
       }
     });
   },
@@ -159,14 +160,15 @@ export default {
       }
       let params = {
         title: this.packageName,
+        sign: this.signName,
         content: "【" + this.signName + "】" + this.packageContent + lletter,
         // type: this.activeModel + 1
-        type: this.$route.params.id
+        types: this.$route.params.id
       };
       console.info(params);
-      this.$post("group/letter", params, res => {
+      this.$post("client/dotemp", params, res => {
         console.info(res);
-        if (res.data.status === 1) {
+        if (res.data.code === 200) {
           Dialog.alert({
             title: "提示",
             message: "创建成功"

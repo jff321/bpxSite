@@ -10,10 +10,8 @@ Vue.prototype.$axios = axios;
 export default {
   install(Vue, options) {
     Vue.prototype.allConfig = {
-      apihttp: 'http://c.adbpx.com/api/manager/',
-      // apihttp: 'http://jukekeji.adbpx.com/api/manager/',
       // apihttp: 'http://c.adbpx.com/api/manager/',
-      // apihttp: 'http://47.101.134.44/api/manager/',
+      apihttp: 'http://192.168.0.120/',
       sysTipsMsg: {
         error: '数据加载失败，请重试！'
       },

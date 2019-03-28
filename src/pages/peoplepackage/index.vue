@@ -19,100 +19,7 @@
     <!--<div class="createBag"><van-button @click="toCreateBag" size="large" type="default" plain style="color: rgba(0,0,0,0.5);border: none;border-bottom: 1px solid #eee"><van-icon name="add-o"  style="vertical-align: -3px;padding-right: 10px" />创建人群包</van-button></div>-->
     <van-popup v-model="showPopup" :overlay="false" position="right">
       <new-package v-on:hidePopup="showPopup = false;" v-on:pkgCreated="reloadData"></new-package>
-      <!-- <van-row>
-          <van-col :span="24" style="text-align: center;font-size: 18px;padding: 20px 0;">
-            创建人群包
-          </van-col>
-          <van-col :span="24" class="pt5">
-            <van-col :span="9" style="text-align:right"><span class="labelTitle">人群包名称 :</span></van-col>
-            <van-col :span="15" style="text-align: left;padding-left: 10px" ><input type="text" class="bagInput" v-model="packageName"></van-col>
-          </van-col>
-          <van-col :span="24" class="pt5">
-            <van-col :span="9" style="text-align:right"><span class="labelTitle">探知器 :</span></van-col>
-            <van-col :span="15" style="text-align: left;padding-left: 10px" >
-              <select name="bind" id="tanzhen"  v-model="bindSelect" @change="getTotal" style="width: 90%;border:none;background-color: #fff;">
-                <option value="all" >全部探知器</option>
-                <option :value="items.number_id" v-for="(items,index) in binding">{{items.name}}</option>
-              </select>
-            </van-col>
-          </van-col>
-          <van-col :span="24" class="pt5">
-            <van-col :span="9" style="text-align:right"><span class="labelTitle">距离范围 :</span></van-col>
-            <van-col :span="15" style="text-align: left;padding-left: 10px" >
-              <select name="bind" id="juli"  v-model="distanceSelect" @change="getTotal" style="width: 90%;border:none;background-color: #fff;">
-                <option :value="items.value" v-for="(items,index) in distance">{{items.label}}</option>
-              </select>
-            </van-col>
-          </van-col>
-          <van-col :span="24" class="pt5">
-            <van-col :span="9" style="text-align:right"><span class="labelTitle">最短驻留时间(分) :</span></van-col>
-            <van-col :span="15" style="text-align: left;padding-left: 10px" ><input type="tel" class="bagInput"  v-model="shortTime"></van-col>
-          </van-col>
-          <van-col :span="24" class="pt5">
-            <van-col :span="9" style="text-align:right"><span class="labelTitle">最长驻留时间(分) :</span></van-col>
-            <van-col :span="15" style="text-align: left;padding-left: 10px" ><input type="tel" class="bagInput"   v-model="longTime"></van-col>
-          </van-col>
-          <van-col :span="24" class="pt5">
-            <van-col :span="9" style="text-align:right"><span class="labelTitle">筛选日期(起始) :</span></van-col>
-            <van-col :span="15" style="text-align: left;padding-left: 10px" >
-              <div @click="beginselectDate" class="bagDiv">{{beginDateTime}}</div>
-            </van-col>
-          </van-col>
-          <van-col :span="24" class="pt5">
-            <van-col :span="9" style="text-align:right"><span class="labelTitle">筛选日期(结束) :</span></van-col>
-            <van-col :span="15" style="text-align: left;padding-left: 10px" >
-              <div @click="endselectDate" class="bagDiv">{{endDateTime}}</div>
-            </van-col>
-          </van-col>
-          <van-col :span="24" class="pt5">
-            <van-col :span="9" style="text-align:right"><span class="labelTitle">&emsp;</span></van-col>
-            <van-col :span="15" style="text-align: left;padding-left: 10px" ><div class="bagDiv" style="border: none;">
-              <label for="is-repeat-data" class="not-repeat-config">
-                <input type="checkbox" name="isRepeat" id="is-repeat-data" v-model="notRepeat">
-                &nbsp;匹配过不在重复出现</label>
-              </div></van-col>
-          </van-col>
-          <van-col :span="24" class="pt5">
-            <van-col :span="9" style="text-align:right"><span class="labelTitle">匹配数量 :</span></van-col>
-            <van-col :span="15" style="text-align: left;padding-left: 10px" ><div class="bagDiv" style="border: none;">{{total}}</div></van-col>
-          </van-col>
-          <van-col :span="24" class="pt5" v-if="total">
-            <van-col :span="9" style="text-align:right"><span class="labelTitle">预计扣费 :</span></van-col>
-            <van-col :span="15" style="text-align: left;padding-left: 10px;font-size: 12px" >
-              <div style="margin-top: 5px">
-                <b>{{(total*0.5*0.6).toFixed(2)}}元</b><van-icon name="warn" @click="desShow = !desShow" style="padding-left: 10px;vertical-align: -2px;color:#FF7200;font-size: 15px"/><br />
-              </div>
-              <div style="margin-top: 4px">
-                <van-icon name="receive-gift"  style="padding-right: 10px;vertical-align:-2px;color:red;font-size: 15px"/>获得红包{{total?(total*0.5*0.6).toFixed(2):0}}元
-              </div>
-              <div v-if="desShow">
-                <b>{{total}}</b>x<b>0.5</b>(每个匹配金额)x <b>0.6</b>(匹配率)= {{(total*0.5*0.6).toFixed(2)}}<br />
-                实际扣费按匹配数量计算,扣费后将会得到相同金额的红包,可用于抵扣广告消费
-              </div>
-            </van-col>
-          </van-col>
-          <van-col :span="24" class="pt5">
-            <van-col :span="12"><van-button type="default" class="createBtn" @click="createCancel" style="width: 100%;height: 100%;border-right: none">取消</van-button></van-col>
-            <van-col :span="12"><van-button class="createBtn" :disabled="disabled"  @click="createComfirm"  style="width: 100%;height: 100%;">创建</van-button></van-col>
-          </van-col>
-      </van-row>-->
     </van-popup>
-    <!-- <van-actionsheet v-model="beginshowdatelist">
-      <van-datetime-picker
-        v-model="begincurrentDate"
-        type="datetime"
-        @cancel="begincancelDate"
-        @confirm="beginconfirmDate"
-      />
-    </van-actionsheet>
-    <van-actionsheet v-model="endshowdatelist">
-      <van-datetime-picker
-        v-model="endcurrentDate"
-        type="datetime"
-        @cancel="endcancelDate"
-        @confirm="endconfirmDate"
-      />
-    </van-actionsheet>-->
     <scroller
       style="padding-top:46px"
       :on-refresh="refresh"
@@ -152,21 +59,6 @@
                   </p>
                 </div>
               </van-col>
-              <!-- <van-col :span="3">
-                  <icon name="angle-right" scale="1.5"/>
-              </van-col>-->
-              <!-- <van-col :span="24" style="border-bottom: 1px solid #eee;padding-bottom: 3px;">
-                  <div class="telephone">
-                    <span>名称:&nbsp;{{items.name}}</span>
-                    <span class="label labelbgcolorno" v-if="!items.status">{{items.status_link}}</span>
-                    <span class="label labelbgcolorhave" v-if="items.status">{{items.status_link}}</span>
-                  </div>
-                  <div class="ages" style="padding:3px 0;">
-                    <span>数量: {{items.number}}</span>
-                    <div style="float: right;color: #eee;position: relative;top: -5px;" ><icon name="angle-right" scale="1.5"/></div>
-                  </div>
-                  <div class="lastdate">创建时间: {{items.updated_at}}</div>
-              </van-col>-->
             </van-col>
           </router-link>
         </template>
@@ -404,7 +296,6 @@ export default {
     // },
     getDataList() {
       this.$get("probe/crowd?pageSize=8&page=" + this.page, "", result => {
-        console.log('RESULT1111111111:', result);
         if (result.data.data.length) {
           for (let key in result.data.data) {
             this.list.push(result.data.data[key]);

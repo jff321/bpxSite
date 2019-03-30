@@ -1,6 +1,6 @@
 <template>
   <div class="customers">
-    <div class="customer" v-for="(items,index) in list" :key="index" @click="postMac(items.id)">
+    <div class="customer" v-for="(items,index) in list" :key="index" @click="postMac(items.mac_id)">
       <div class="customer-inner">
         <van-row>
           <van-col :span="16">

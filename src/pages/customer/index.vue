@@ -273,6 +273,7 @@ export default {
   watch: {
     $route(to, from) {
       if (to.query.id) {
+        console.log('to.query.id:', to.query.id);
         this.isShowUserTag = true;
         setTimeout(() => {
           this.userMac = to.query.id;

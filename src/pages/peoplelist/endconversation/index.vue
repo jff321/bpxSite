@@ -211,12 +211,14 @@ export default {
         letter: this.type,
         uname: this.customerName,
         contact: this.headerName,
-        follow: this.selectStatus,
-        remark: this.note,
+        follow: this.selectType,
+        remark: this.selectStatus,
+        // mac: this.usermac,
+        type: this.type
       };
       console.info("传的参数", params);
       this.$post("client/dotags", params, res => {
-        if (res.data.code === 200) {
+        if (res.data.status === 1) {
           Dialog.alert({
             title: "提示",
             message: res.data.msg

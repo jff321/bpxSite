@@ -37,13 +37,19 @@
               <van-col :span="16">
                 <h2 class="title">{{items.name}}</h2>
                 <p class="time-wrap">
-                  <span class="time">创建时间 {{items.created_at}}</span>
+                  <span class="time">创建时间 {{items.times}}</span>
                 </p>
 
                 <span
                   class="state"
                   :class="{success:items.status, fail:!items.status}"
-                >{{items.status_link}}</span>
+                  v-if="items.status === 1"
+                >计算完成</span>
+                <span
+                  class="state"
+                  :class="{success:items.status, fail:!items.status}"
+                  v-else
+                >计算中</span>
 
                 <!-- <div class="telephone">
                   <span class="label labelbgcolorno" v-if="!items.status">{{items.status_link}}</span>
@@ -53,7 +59,7 @@
               <van-col :span="8">
                 <div class="item-right">
                   <p class="quantity">
-                    <span class="value">{{items.number.split('/')[0]}}</span>
+                    <span class="value">{{items.t_nums}}</span>
                     <br>
                     <span class="name">可用人数</span>
                   </p>
@@ -230,7 +236,7 @@ export default {
     this.loadinglayer = document.getElementsByClassName("loading-layer");
     this.bindSelect = "all";
     this.distanceSelect = "0";
-    // this.getProbeList();
+    // this.getDataList();
   },
   methods: {
     onClickRight() {
@@ -295,19 +301,25 @@ export default {
     //   });
     // },
     getDataList() {
-      this.$get("probe/crowd?pageSize=8&page=" + this.page, "", result => {
-        if (result.data.data.length) {
-          for (let key in result.data.data) {
-            this.list.push(result.data.data[key]);
+      this.$get("client/matelist?page=" + this.page, "", result => {
+        // console.log('result22222222222:', result);
+        if(result.data.code === 200){
+          if (result.data.data.list.length) {
+            for (let key in result.data.data.list) {
+              this.list.push(result.data.data.list[key]);
+            }
+          } else {
+            this.hasData = 1; // 返回没有数据
+          }
+          if (this.list.length === 0) {
+            if (this.loadinglayer.length) {
+              this.loadinglayer[0].style.opacity = 0;
+            }
           }
         } else {
-          this.hasData = 1; // 返回没有数据
+          this.$status(result.data.msg)
         }
-        if (this.list.length === 0) {
-          if (this.loadinglayer.length) {
-            this.loadinglayer[0].style.opacity = 0;
-          }
-        }
+        console.log('this.list:', this.list)
       });
     },
     // beginselectDate() {
@@ -395,7 +407,7 @@ export default {
         this.page = 1;
         this.list = [];
         this.hasData = 0;
-        this.getDataList();
+        // this.getDataList();
         done();
       }, 1500);
     },

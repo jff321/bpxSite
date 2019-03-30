@@ -244,23 +244,23 @@ export default {
       distanceData: [
         {
           label: "不限",
-          value: "0"
+          value: ""
         },
         {
           label: "50米内",
-          value: "10"
+          value: "1"
         },
         {
           label: "30米内",
-          value: "30"
+          value: "2"
         },
         {
           label: "10米内",
-          value: "50"
+          value: "3"
         },
         {
           label: "5米内",
-          value: "80"
+          value: "4"
         }
       ],
       isDisabled: false
@@ -317,23 +317,25 @@ export default {
       // this.disabled = true;
       let params = {
         name: this.packageName,
-        mid: this.device.value === "-1" ? "all" : this.device.value,
-        rssi: this.distance.value,
-        mintime: this.shortMinutes * 60,
+        box_id: this.device.value === "-1" ? "" : this.device.value,
+        range_id: this.distance.value,
+        min_time: this.shortMinutes,
         // maxtime: !this.longMinutes ? "不限" : this.longTime * 60,
-        maxtime: this.longMinutes ? this.longMinutes * 60 : "不限",
-        start_time: this.beginDate,
-        end_time: this.endDate,
-        not_repeat: this.noRepeat ? 1 : 0
+        max_time: this.longMinutes ? this.longMinutes : "",
+        start_date: this.beginDate,
+        end_date: this.endDate,
+        repeat: this.noRepeat ? 1 : 0,
+        y_nums: this.calcTotal,
+        money: this.calcMoney
       };
-      console.log('this.distance.value:', this.distance.value);
+      // console.log('this.distance.value:', this.distance.value);
       if (this.isDisabled) {
         return;
       }
       this.isDisabled = true;
-      this.$post("media/mac", params, res => {
+      this.$post("client/domate", params, res => {
         // console.info(res);
-        if (res.data.status === 1) {
+        if (res.data.code === 200) {
           Dialog.alert({
             title: "提示",
             message: "创建成功"
@@ -343,11 +345,11 @@ export default {
             this.packageName = '';
             this.device = {
               label: "全部",
-              value: "-1"
+              value: ""
             };
             this.distance = {
               label: "不限",
-              value: "0"
+              value: ""
             };
             this.shortMinutes = 0;
             this.longMinutes = '';
@@ -357,6 +359,7 @@ export default {
             this.onClickLeft();
           });
         } else {
+          console.log('进入else');
           Dialog.alert({
             title: "提示",
             message: res.data.msg
@@ -394,32 +397,32 @@ export default {
       } else if (!isNaN(sTime) && !isNaN(lTime)) {
         time = "&time$=>=" + sTime * 60 + ",<=" + lTime * 60;
       }
-
       this.$get(
-        "media/mac/?" + updated + rssi + time + mid + "&pageSize=1",
+        "client/matenum?box_id=" + (this.device.value === "-1" ? "" : this.device.value) + "&range_id=" + this.distance.value + "&min_time=" + this.shortMinutes + "&max_time=" + (this.longMinutes ? this.longMinutes : "") + "&start_date=" + this.beginDate + "&end_date=" + this.endDate + "&repeat=" + (this.noRepeat ? 1 : 0),
         "",
         res => {
-          //   console.info("返回的total", res);
-          //   this.total = res.data.mate.total;
-          let total = res.data.mate.total;
-          this.calcTotal = total;
-          this.calcMoney = (total * 0.5 * 0.6).toFixed(2) + "元";
+          if(res.data.code === 200) {
+            this.total = res.data.data.count;
+            let total = res.data.data.total;
+            this.calcTotal = total;
+            this.calcMoney = (total * 0.5 * 0.6).toFixed(2);
+          } else {
+            this.$status(res.data.msg);
+          }
         }
       );
     },
     getDevices() {
-      this.$get("probe/binding", "", res => {
-        if (res.data.status === 1) {
-          //   console.info("总数据", res.data.data);
+      this.$get("client/getbox", "", res => {
+        console.log('RES：', res);
+        if (res.data.code === 200) {
           const arr = res.data.data;
           arr.forEach(ele => {
             this.deviceData.push({
               label: ele.name,
-              value: ele.number_id
+              value: ele.code
             });
           });
-          //   this.binding = res.data.data;
-          // this.bindSelect = res.data.data[0].id;
         } else {
           //   Dialog.alert({
           //     title: "提示",

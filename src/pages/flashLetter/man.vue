@@ -38,59 +38,42 @@
     <scroller :on-infinite="infinite" style="top:80px;">
       <van-checkbox-group v-model="result">
         <van-row style="padding: 0px 15px">
-          <!--<template v-for="(item, key) in list">-->
-          <!--<van-col :span="24" style="padding: 5px 0" >-->
-          <!--<van-col :span="4" style="padding: 18px 5px 0;">-->
-          <!--<van-checkbox :name="item.id" style="font-size: 15px"></van-checkbox>-->
-          <!--</van-col>-->
-          <!--<van-col :span="20" style="border-bottom: 1px solid #eee;padding-bottom: 3px">-->
-          <!--<div class="telephone">-->
-          <!--<span>名称:&nbsp;{{item.name}}</span>-->
-          <!--&lt;!&ndash;<span class="label labelbgcolorno">大萨达</span>&ndash;&gt;-->
-          <!--&lt;!&ndash;<span class="label labelbgcolorhave">实打实</span>&ndash;&gt;-->
-          <!--</div>-->
-          <!--<div class="ages" style="padding:3px 0;">-->
-          <!--<span>数量: {{item.number}}</span>-->
-          <!--</div>-->
-          <!--<div class="lastdate">创建时间:{{item.updated_at}}</div>-->
-          <!--</van-col>-->
-          <!--</van-col>-->
-          <!--</template>-->
           <template v-for="(items,index) in list">
             <van-col :span="24" style="padding: 5px 0" :key="index">
               <van-col :span="4" style="padding: 31px 5px 0;">
-                <van-checkbox :name="items.phone" style="font-size: 15px"></van-checkbox>
+                <van-checkbox :name="items.id" style="font-size: 15px"></van-checkbox>
               </van-col>
-              <!--<van-col :span="5">-->
-              <!--<div class="content-img" style="color:#CACED4">-->
-              <!--<icon name="user-circle" scale="3.4"/>-->
-              <!--<span class="icon-telephone"><icon name="phone" scale="0.8"/></span>-->
-              <!--</div>-->
-              <!--</van-col>-->
               <van-col :span="19" style="border-bottom: 1px solid #eee;padding-bottom: 3px">
                 <!--<a :href="'#' + items.id" @click="openDetail(items.id)">-->
                 <van-col :span="20">
                   <div class="time">
                     <!--<span class="title">姓名：{{items.user_id_link.name}}</span>-->
-                    <span class="title">姓名：{{items.user ? items.user : '无'}}</span>
+                    <span class="title">姓名：{{items.contact ? items.contact : '无'}}</span>
                     <!--<span class="label labelbgcolorno">无意向</span>-->
                     <!--<span class="label labelbgcolorhave">有意向</span>-->
                     <!--<span class="label labelbgcolornonet">未接通</span>-->
                     <!--<span class="label labelbgcolornull">空号</span>-->
                   </div>
                   <div class="time">
-                    <span class="title">电话：{{tel(items.phone?items.phone:'***********')}}</span>
+                    <span class="title">电话：{{items.mobile}}</span>
                   </div>
                   <div class="time">
                     <!--<span>&nbsp;20-30岁</span>-->
-                    <span class="title">类型：{{items.customer_type_link}}</span>
+                    <span v-if="items.types === 1" class="title">类型：普通客户</span>
+                    <span v-if="items.types === 2" class="title">类型：积极客户</span>
+                    <span v-if="items.types === 3" class="title">类型：高价值客户</span>
                   </div>
                   <div class="time">
-                    <span class="title">状态：{{items.type_link}}</span>
+                    <span v-if="items.letter === 1" class="title">状态：有意向</span>
+                    <span v-if="items.letter === 2" class="title">状态：无意向</span>
+                    <span v-if="items.letter === 3" class="title">状态：空号</span>
+                    <span v-if="items.letter === 4" class="title">状态：未接通</span>
                   </div>
                   <div class="time">
                     <!--<span>&nbsp;20-30岁</span>-->
-                    <span class="title">意向：{{items.type_status_link}}</span>
+                    <span v-if="items.follow === 1" class="title">意向：持续跟进</span>
+                    <span v-if="items.follow === 2" class="title">意向：暂无意向</span>
+                    <span v-if="items.follow === 3" class="title">意向：新转入</span>
                   </div>
                   <!--<div class="ages">-->
                   <!--&lt;!&ndash;<span>&nbsp;20-30岁</span>&ndash;&gt;-->
@@ -159,7 +142,7 @@
 <script>
 import { Row, Col, Checkbox, CheckboxGroup, Button, Dialog, Icon } from "vant";
 export default {
-  props: ["msgpm"],
+  props: ["msgpm", "masgactive"],
   name: "sendMsgTpl",
   components: {
     [Row.name]: Row,
@@ -237,7 +220,7 @@ export default {
       }
     },
     send() {
-      // console.info(this.msgpm);
+      // console.info('***********************', this.msgpm);
       if (!this.msgpm.id || !this.msgpm.type) {
         Dialog.alert({
           title: "提示",
@@ -252,15 +235,20 @@ export default {
         });
       } else {
         let params = {
-          letter_id: this.msgpm.id,
-          where: this.msgpm.type,
-          phone: this.result
+          id: this.msgpm.id,
+          sort: this.masgactive,
+          ids: this.result
         };
-        this.$post("letter/phone", params, res => {
-          Dialog.alert({
-            title: "提示",
-            message: res.data.msg
-          });
+        this.$post("client/dosms", params, res => {
+          // console.log('res:', res);
+          if(res.data.code === 200){
+            Dialog.alert({
+              title: "提示",
+              message: res.data.msg
+            });
+          } else {
+            this.$status(res.data.msg)
+          }
         });
       }
     },
@@ -292,27 +280,30 @@ export default {
       }
     },
     getPepoleBag() {
-      console.log('获取人群包');
+      // console.log('获取人群包');
       // 获取人群包
       this.$get(
-        this.httpQuery(this.urlParmas, this.url) + "&page=" + this.page,
+        // this.httpQuery(this.urlParmas, this.url) + "&page=" + this.page,
+        "client/customer?page=" +
+        this.page + "&types=" + this.kefu + "&follow=" + this.jindu + "&letter=" + this.yx,
         "",
         res => {
           console.log("RES:", res);
-          if (res.data.status === 1) {
+          if (res.data.code === 200) {
             // console.info(0);
             if (this.page === 1) {
               this.list = [];
             }
-            if (res.data.data.length === 0) {
+            if (res.data.data.list.length === 0) {
               // console.info(11);
               this.hasData = 1;
             } else {
               // console.info(2222);
-              for (let key in res.data.data) {
-                this.list.push(res.data.data[key]);
-                this.allResult.push(res.data.data[key].phone);
+              for (let key in res.data.data.list) {
+                this.list.push(res.data.data.list[key]);
+                this.allResult.push(res.data.data.list[key].id);
               }
+
               // this.hasData = 1;
             }
           } else {
@@ -324,6 +315,7 @@ export default {
           }
         }
       );
+      // console.log('this.allResult:', this.allResult);
     },
     refresh(done) {
       setTimeout(() => {

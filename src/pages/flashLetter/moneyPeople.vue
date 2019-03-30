@@ -20,9 +20,9 @@
                   <!--<span class="label labelbgcolorhave">实打实</span>-->
                 </div>
                 <div class="time" style="padding:3px 0;">
-                  <span class="title">数量 {{item.number.split("/")[0]}}</span>
+                  <span class="title">数量 {{item.t_nums}}</span>
                 </div>
-                <div class="time">创建时间 {{item.updated_at}}</div>
+                <div class="time">创建时间 {{item.times}}</div>
               </van-col>
             </van-col>
           </template>
@@ -71,7 +71,7 @@ import {
   Tabs
 } from "vant";
 export default {
-  props: ["msgpm"],
+  props: ["msgpm", "masgactive"],
   name: "sendMsgTpl",
   components: {
     [Row.name]: Row,
@@ -128,7 +128,7 @@ export default {
       }
     },
     send() {
-      console.info(this.msgpm);
+      // console.info('***********************', this.msgpm);
       if (!this.msgpm.id || !this.msgpm.type) {
         Dialog.alert({
           title: "提示",
@@ -143,15 +143,22 @@ export default {
         });
       } else {
         let params = {
-          letter_id: this.msgpm.id,
-          where: this.msgpm.type,
-          id: this.result
+          id: this.msgpm.id,
+          sort: this.masgactive,
+          ids: this.result
         };
-        this.$post("letter/phone", params, res => {
-          Dialog.alert({
-            title: "提示",
-            message: res.data.msg
-          });
+        this.$post("client/dosms", params, res => {
+          if(res.data.code === 200){
+            Dialog.alert({
+              title: "提示",
+              message: res.data.msg
+            });
+          } else {
+            Dialog.alert({
+              title: "提示",
+              message: res.data.msg
+            });
+          }
         });
       }
     },
@@ -160,19 +167,19 @@ export default {
     },
     getPepoleBag() {
       // 获取人群包
-      this.$get("probe/crowd?pageSize=8&page=" + this.page, "", res => {
-        console.info("page", this.page);
-        if (res.data.status === 1) {
-          console.info(0);
+      this.$get("client/matelist?page=" + this.page, "", res => {
+        // console.info("page", this.page);
+        if (res.data.code === 200) {
+          // console.info(0);
           if (this.page === 1) {
             this.list = [];
           }
-          if (res.data.data.length === 0) {
+          if (res.data.data.list.length === 0) {
             this.hasData = 1;
           } else {
-            for (let key in res.data.data) {
-              this.list.push(res.data.data[key]);
-              this.allResult.push(res.data.data[key].id);
+            for (let key in res.data.data.list) {
+              this.list.push(res.data.data.list[key]);
+              this.allResult.push(res.data.data.list[key].id);
             }
             // console.info(this.list);
             // this.hasData = 1;

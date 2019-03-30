@@ -1,29 +1,43 @@
 <template>
   <div class="customers">
-    <div class="customer" v-for="(items,index) in list" :key="index" @click="postMac(items.mac)">
+    <div class="customer" v-for="(items,index) in list" :key="index" @click="postMac(items.id)">
       <div class="customer-inner">
         <van-row>
           <van-col :span="16">
             <div class="info-wrap">
               <span
                 class="custom-type"
-                :class="{typecolor1:items.customer_type === '1', typecolor2:items.customer_type === '2', typecolor3:items.customer_type === '3'}"
-              >{{items.customer_type_link}}</span>
+                v-if="items.types === 1"
+                :class="{typecolor1:items.types === 1, typecolor2:items.types === 2, typecolor3:items.types === 3}"
+              >普通客户</span>
+              <span
+                class="custom-type"
+                v-if="items.types === 2"
+                :class="{typecolor1:items.types === 1, typecolor2:items.types === 2, typecolor3:items.types === 3}"
+              >积极客户</span>
+              <span
+                class="custom-type"
+                v-if="items.types === 3"
+                :class="{typecolor1:items.types === 1, typecolor2:items.types === 2, typecolor3:items.types === 3}"
+              >高价值客户</span>
               <span
                 class="mobile-name"
-              >{{tel(items.phone?items.phone:'********')}}&nbsp;{{items.user}}</span>
+              >{{items.mobile}}</span>
             </div>
             <p class="other-info">
               <span class="label">负责人:</span>
-              <span class="value">{{items.charge || '无'}}</span>
+              <span class="value">{{items.contact || '无'}}</span>
             </p>
             <p class="other-info">
               <span class="label">备&emsp;注:</span>
-              <span class="value">{{items.remarks || '无'}}</span>
+              <span class="value">{{items.remark || '无'}}</span>
             </p>
             <p class="other-info">
               <span class="label">意&emsp;向:</span>
-              <span class="value">{{items.type_link || '无'}}</span>
+              <span v-if="items.follow === 0" class="value">无</span>
+              <span v-if="items.follow === 1" class="value">持续跟进</span>
+              <span v-if="items.follow === 2" class="value">暂无意向</span>
+              <span v-if="items.follow === 3" class="value">新转入</span>
             </p>
           </van-col>
           <van-col :span="8">
@@ -39,7 +53,7 @@
                 <img src="./imgs/message.png" width="20" alt>
               </span>
               <span
-                @click.stop="getTelephone(items.phone, items.mac)"
+                @click.stop="getTelephone(items.phone, items.id)"
                 class="icon-wrap"
                 v-if="isShow"
               >
@@ -140,17 +154,17 @@ export default {
   methods: {
     sendFlash(value) {
       // console.log(ev);
-      this.$emit("showModel", { isShowFlash: true, type: 1, phone: value });
+      this.$emit("showModel", { isShowFlash: true, type: 2, phone: value });
     },
     sendMessage(value) {
       // console.log(ev);
-      this.$emit("showModel", { isShowFlash: true, type: 2, phone: value });
+      this.$emit("showModel", { isShowFlash: true, type: 1, phone: value });
     },
     postMac(value) {
-      this.$emit("showmac", { mac: value });
+      this.$emit("showmac", { id: value });
     },
     getTelephone(value1, value2) {
-      this.$emit("showmac", { phone: value1, mac: value2 });
+      this.$emit("showmac", { phone: value1, id: value2 });
     }
   },
   mounted() {

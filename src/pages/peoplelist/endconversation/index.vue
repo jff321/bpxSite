@@ -161,7 +161,7 @@ export default {
   },
   methods: {
     onClickLeft() {
-      console.log("11111111########");
+      // console.log("11111111########");
       history.back();
       this.customerName = "";
       this.headerName = "";
@@ -172,9 +172,9 @@ export default {
       this.update = null;
     },
     getDataList() {
-      this.$get("customer/remarks?mac=" + this.usermac, "", res => {
+      this.$get("client/cinfo?id=" + this.usermac, "", res => {
         console.info("信息详情", res);
-        if (res.data.status === 1) {
+        if (res.data.code === 200) {
           if (res.data.data.length === 0) {
             console.log("没有历史");
             this.showAdd = true;
@@ -206,17 +206,17 @@ export default {
     },
     submitForm() {
       let params = {
-        user: this.customerName,
-        charge: this.headerName,
-        remarks: this.note,
-        customer_type: this.selectType,
-        type_status: this.selectStatus,
-        mac: this.usermac,
-        type: this.type
+        id: this.usermac,
+        types: this.selectType,
+        letter: this.type,
+        uname: this.customerName,
+        contact: this.headerName,
+        follow: this.selectStatus,
+        remark: this.note,
       };
       console.info("传的参数", params);
-      this.$post("customer/remarks", params, res => {
-        if (res.data.status === 1) {
+      this.$post("client/dotags", params, res => {
+        if (res.data.code === 200) {
           Dialog.alert({
             title: "提示",
             message: res.data.msg

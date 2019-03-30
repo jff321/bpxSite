@@ -479,25 +479,31 @@ export default {
     },
     getCardData() {
       // console.log('获取卡片数据');
-      const end = new Date();
-      const start = new Date();
-      start.setTime(start.getTime() - 3600 * 1000 * 24 * 0);
-      this.beginTime =
-        start.getFullYear() +
-        "-" +
-        this.add0((start.getMonth() + 1)) +
-        "-" +
-        this.add0(start.getDate());
-      this.endTime =
-        end.getFullYear() +
-        "-" +
-        this.add0((end.getMonth() + 1)) +
-        "-" +
-        this.add0((end.getDate() + 1));
-      let updated =
-        "updated_at$" + "=>=" + this.beginTime + ",<=" + this.endTime;
-      this.$get('mac/count/?' + updated, '', res => {
-        this.globalStats = res.data.data;
+      // const end = new Date();
+      // const start = new Date();
+      // start.setTime(start.getTime() - 3600 * 1000 * 24 * 0);
+      // this.beginTime =
+      //   start.getFullYear() +
+      //   "-" +
+      //   this.add0((start.getMonth() + 1)) +
+      //   "-" +
+      //   this.add0(start.getDate());
+      // this.endTime =
+      //   end.getFullYear() +
+      //   "-" +
+      //   this.add0((end.getMonth() + 1)) +
+      //   "-" +
+      //   this.add0((end.getDate() + 1));
+      // let updated =
+      //   "updated_at$" + "=>=" + this.beginTime + ",<=" + this.endTime;
+      this.$get('client/count', '', res => {
+        // console.log('res*************', res);
+        if(res.data.code === 200){
+          this.globalStats.total_count = res.data.data.new_count;
+          this.globalStats.new_count = res.data.data.onehour_count;
+          this.globalStats.back_count = res.data.data.back_count;
+        }
+        // this.globalStats = res.data.data;
       });
     },
     searchDay (value) {
@@ -519,8 +525,8 @@ export default {
       let kidsTemp = [];
       let phoneTemp = [];
       let priceTemp = [];
-      this.$get('passenger_trait/' + this.day, '', res => {
-        if (res.data.status === 1) {
+      this.$get('client/passenger/' + this.day, '', res => {
+        if (res.data.code === 200) {
           // this.sexRatioData.rows = res.data.data.sex_scale.data;
           // 性别比例
           sexTemp = res.data.data.sex_scale.data;

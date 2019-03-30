@@ -35,7 +35,7 @@
             <span
               class="send-btn custom-btn"
               v-if="item.status == 1"
-              @click="showSendMsg(item.id, item.type)"
+              @click="showSendMsg(item.id, item.types)"
             >
               <img src="./imgs/message.png" alt v-if="item.types === 1">
               <img src="./imgs/flash.png" alt v-if="item.types === 2">
@@ -55,11 +55,11 @@
       <van-row>
         <van-col span="24">
           <van-tabs v-model="masgactive">
-            <van-tab title="人群包">
-              <moneyPeople @close="close" :msgpm="msgpm"></moneyPeople>
+            <van-tab title="匹配包">
+              <moneyPeople @close="close" :msgpm="msgpm" :masgactive="masgactive"></moneyPeople>
             </van-tab>
             <van-tab title="客户包">
-              <man @close="close" :msgpm="msgpm"></man>
+              <man @close="close" :msgpm="msgpm" :masgactive="masgactive"></man>
             </van-tab>
           </van-tabs>
         </van-col>

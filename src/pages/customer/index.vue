@@ -72,7 +72,7 @@
           <van-col :span="8">
             <div class="select">
               <select name id="type" v-model="selectPhone" @change="submitSelectPhone">
-                <option  v-for="(item, index) in phoneList" :value="index">{{item.phone}}</option>
+                <option  v-for="(item, index) in phoneList" :value="index">{{item}}</option>
                 <!--<option value="1">13890775272</option>-->
                 <!--<option value="2">13858294021</option>-->
                 <!--<option value="3">15990512761</option>-->
@@ -104,8 +104,8 @@
     <div class="sendflash">
       <van-popup v-model="isShowModel" :overlay="true">
         <!--<van-loading  color="black"  v-if="loading" style="text-align: center;margin: 0 auto"/>-->
-        <div style="text-align: center;padding: 10px 0;" v-if="isModelType === 1">闪信模板</div>
-        <div style="text-align: center;padding: 10px 0;" v-if="isModelType === 2">短信模板</div>
+        <div style="text-align: center;padding: 10px 0;" v-if="isModelType === 2">闪信模板</div>
+        <div style="text-align: center;padding: 10px 0;" v-if="isModelType === 1">短信模板</div>
         <div style class="contentS">
           <van-radio-group v-model="modelIndex">
             <van-cell-group>
@@ -117,11 +117,11 @@
               >
                 <div style="padding-left: 45px">
                   标题:
-                  <span style="color: rgba(0,0,0,1)">{{items.title}}</span>
+                  <span style="color: rgba(0,0,0,1)">{{items.title}}111</span>
                 </div>
                 <div style="padding-left: 45px">
                   内容:
-                  <span style="color: rgba(0,0,0,0.6)">{{items.content}}</span>
+                  <span style="color: rgba(0,0,0,0.6)">{{items.content}}222</span>
                 </div>
                 <van-radio :name="items.id" style="padding-top: 25px;"/>
               </van-cell>
@@ -266,16 +266,16 @@ export default {
     this.loadinglayer = document.getElementsByClassName("loading-layer");
     this.getDataList();
     // 获取多个手机号，用于拨打电话
-    this.$get('getDialPhone?user_id=' + localStorage.getItem('telId'), '', res => {
+    this.$get('client/phonelist', '', res => {
       this.phoneList = res.data.data;
     });
   },
   watch: {
     $route(to, from) {
-      if (to.query.mac) {
+      if (to.query.id) {
         this.isShowUserTag = true;
         setTimeout(() => {
-          this.userMac = to.query.mac;
+          this.userMac = to.query.id;
         }, 30);
       } else {
         this.userMac = "";
@@ -299,21 +299,22 @@ export default {
       this.currentType = type;
     },
     createComfirm() {
-      console.log('发送短信/闪信');
+      // console.log('发送短信/闪信');
       if (!this.modelIndex) {
         Toast({
           message: "请先创建模板！"
         });
         return;
       } else {
+        console.log();
         let params = {
-          phone: this.telephone,
-          letter_id: this.modelIndex,
-          where: this.isModelType
+          phone: this.phoneList[this.selectPhone],
+          id: this.modelIndex,
+          types: this.isModelType
         };
-        console.info("要传递的参数", params);
-        this.$post("letter/phone", params, res => {
-          if (res.data.status === 1) {
+        // console.info("要传递的参数", params);
+        this.$post("client/dosms", params, res => {
+          if (res.data.code === 200) {
             this.isShowModel = false;
             // Toast("发送成功");
             Dialog.alert({
@@ -336,11 +337,12 @@ export default {
     getModelList(value) {
       this.modelList = [];
       this.loading = true;
-      this.$get("group/letter?type=" + value + "&status=1", "", res => {
-        console.info("模板列表", res);
-        if (res.data.status === 1) {
+      this.$get("client/smstemp?types=" + value, "", res => {
+        // console.info("模板列表", res);
+        if (res.data.code === 200) {
           this.modelIndex = res.data.data[0] ? res.data.data[0].id : "";
           this.modelList = res.data.data;
+          // console.log('this.modelList:', this.modelList);
           // this.loading = false;
         } else {
           // this.loading = false;
@@ -374,14 +376,15 @@ export default {
     },
     showMac(value) {
       // console.log('###############');
-      console.info("传出来的", value);
+      // console.info("传出来的", value);
+      // console.log(!value.phone);
       if (value.phone) {
         this.isShowTip = true;
         this.getTelephone(value.phone);
       }
 
       if (!value.phone) {
-        this.$router.push("/customer/?mac=" + value.mac);
+        this.$router.push("/customer/?id=" + value.id);
       }
     },
     getTelephone(value) {
@@ -442,40 +445,36 @@ export default {
       } else {
         searchp = "";
       }
-      if (this.selectType === "0") {
-        type = "";
-      } else {
-        type = "&customer_type=" + this.selectType;
-      }
-      if (this.selectStatus === "0") {
-        status = "";
-      } else {
-        status = "&type_status=" + this.selectStatus;
-      }
+      // if (this.selectType === "0") {
+      //   type = "";
+      // } else {
+      //   type = "&customer_type=" + this.selectType;
+      // }
+      // if (this.selectStatus === "0") {
+      //   status = "";
+      // } else {
+      //   status = "&type_status=" + this.selectStatus;
+      // }
       this.$get(
-        "customer/remarks?status=1&pageSize=8&page=" +
-          this.page +
-          type +
-          status +
-          searchp,
+        "client/customer?page=" +
+          this.page + "&types=" + this.selectType + "&follow=" + this.selectStatus + "&keys=" + this.searchphone,
         "",
         res => {
-          console.info('adfasdfasdfasdfasd', res.data.data);
-          if (res.data.status === 1) {
+          if (res.data.code === 200) {
             if (this.page === 1) {
               this.list = [];
             }
-            if (res.data.data.length === 0) {
+            if (res.data.data.list.length === 0) {
               this.hasData = 1;
             } else {
               if (this.page === 1) {
-                this.list = res.data.data;
+                this.list = res.data.data.list;
               } else {
-                if (this.list[0] && this.list[0].id === res.data.data[0].id) {
-                  this.list = res.data.data;
+                if (this.list[0] && this.list[0].id === res.data.data.list[0].id) {
+                  this.list = res.data.data.list;
                 } else {
-                  for (let key in res.data.data) {
-                    this.list.push(res.data.data[key]);
+                  for (let key in res.data.data.list) {
+                    this.list.push(res.data.data.list[key]);
                   }
                 }
               }

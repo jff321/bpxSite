@@ -12,10 +12,19 @@
         </div>
       </van-nav-bar>
       <van-col span="24" style="border-bottom: 1px solid #ccc;background-color: #fff;">
-        <van-col span="8" :class="{selecttab:type == 1}" style="text-align: center">
-          <div v-on:click="selectTab(1)">
+        <van-col span="8" :class="{selecttab:type == 0}" style="text-align: center">
+          <div v-on:click="selectTab(0)">
             <div class="peoplelist-tab-title">全部</div>
             <div class="peoplelist-tab-num">{{peopleList.total_count}}</div>
+            <div>
+              <div class="line-box" :class="{bgcolor:type == 0}"></div>
+            </div>
+          </div>
+        </van-col>
+        <van-col span="8" :class="{selecttab:type == 1}" style="text-align: center">
+          <div v-on:click="selectTab(1)">
+            <div class="peoplelist-tab-title">新访客</div>
+            <div class="peoplelist-tab-num">{{peopleList.new_count}}</div>
             <div>
               <div class="line-box" :class="{bgcolor:type == 1}"></div>
             </div>
@@ -23,19 +32,10 @@
         </van-col>
         <van-col span="8" :class="{selecttab:type == 2}" style="text-align: center">
           <div v-on:click="selectTab(2)">
-            <div class="peoplelist-tab-title">新访客</div>
-            <div class="peoplelist-tab-num">{{peopleList.new_count}}</div>
-            <div>
-              <div class="line-box" :class="{bgcolor:type == 2}"></div>
-            </div>
-          </div>
-        </van-col>
-        <van-col span="8" :class="{selecttab:type == 3}" style="text-align: center">
-          <div v-on:click="selectTab(3)">
             <div class="peoplelist-tab-title">回头客</div>
             <div class="peoplelist-tab-num">{{peopleList.back_count}}</div>
             <div>
-              <div class="line-box" :class="{bgcolor:type == 3}"></div>
+              <div class="line-box" :class="{bgcolor:type == 2}"></div>
             </div>
           </div>
         </van-col>
@@ -68,7 +68,7 @@
           <van-col :span="24">
             <div class="dropdown-menu">
               <select name id="type" v-model="selectPhone" @change="submitSelectPhone">
-                <option  v-for="(item, index) in phoneList" :value="index">{{item.phone}}</option>
+                <option  v-for="(item, index) in phoneList" :value="index">{{item}}</option>
               </select>
             </div>
           </van-col>
@@ -93,10 +93,10 @@
               </div>
             </van-col>
             <van-col :span="19" style="border-bottom: 1px solid #eee;padding-bottom: 10px;">
-              <a :href="'#' + items.id" @click="openDetail(items.id)">
+              <a @click="openDetail(items.mac_id)">
                 <van-col :span="20">
                   <div class="telephones">
-                    <span>&nbsp;{{tel(items.phone?items.phone:'***********')}}</span>
+                    <span>{{items.phone}}</span>
                     <!--<span class="label labelbgcolorno">无意向</span>-->
                     <!--<span class="label labelbgcolorhave">有意向</span>-->
                     <!--<span class="label labelbgcolornonet">未接通</span>-->
@@ -104,23 +104,23 @@
                   </div>
                   <div class="ages">
                     <!--<span>&nbsp;20-30岁</span>-->
-                    <span>&nbsp;到店{{items.many}}次</span>
+                    <span>&nbsp;到店{{items.nums}}次</span>
                     <span>
                       <span style="color: rgba(0,0,0,0.2);vertical-align: -4px">
                         <icon name="mobile"/>
                       </span>
-                      <span style="color: rgba(0,0,0,0.6)">{{items.type?substrings(items.type):''}}</span>
+                      <span style="color: rgba(0,0,0,0.6)">{{items.phone_name?items.phone_name:''}}</span>
                     </span>
                     <!--<div style="float: right;color: #eee;position: relative;top: -5px;"><icon name="angle-right" scale="1.5"/></div>-->
                   </div>
-                  <div class="lastdate">&nbsp;最后到店&nbsp;{{items.updated_at}}</div>
+                  <div class="lastdate">&nbsp;最后到店&nbsp;{{items.times}}</div>
                 </van-col>
               </a>
               <van-col :span="4">
                 <div
                   class="i-telephone"
                   @click="getTelephone(items.id, items.mac)"
-                  v-if="items.conversation === -1"
+                  v-if="items.is_call === 0"
                 >
                   <icon name="phone" scale="1.6"/>
                 </div>
@@ -128,7 +128,7 @@
                   class="i-telephone"
                   style="background-color:#999"
                   @click="getTelephone(items.id, items.mac)"
-                  v-if="items.conversation === 1"
+                  v-if="items.is_call === 1"
                 >
                   <icon name="phone" scale="1.6"/>
                 </div>
@@ -401,7 +401,7 @@ export default {
   },
   mounted() {
     this.loadinglayer = document.getElementsByClassName("loading-layer");
-    this.type = "1";
+    this.type = "0";
     this.hasData = 0;
     this.list = [];
     this.bagID = this.$route.params.id;
@@ -409,7 +409,7 @@ export default {
     this.getBagAttribute();
     this.getBingding();
     // 获取多个手机号，用于拨打电话
-    this.$get('getDialPhone?user_id=' + localStorage.getItem('telId'), '', res => {
+    this.$get('client/phonelist', '', res => {
       this.phoneList = res.data.data;
     });
   },
@@ -446,7 +446,7 @@ export default {
     },
     openDetail(id) {
       this.$router.push(
-        "/peoplepackage/" + this.$route.params.id + "?id=" + id + "&mac="
+        "/peoplepackage/" + this.$route.params.id + "?id=" + id
       );
     }, // 是否打开详情页
     showUserTagPopus(value) {
@@ -541,6 +541,13 @@ export default {
     },
     selectTab(value) {
       switch (value) {
+        case 0:
+          this.type = "0";
+          this.list = [];
+          this.page = 1;
+          this.hasData = 0;
+          // this.getDataList();
+          break;
         case 1:
           this.type = "1";
           this.list = [];
@@ -550,13 +557,6 @@ export default {
           break;
         case 2:
           this.type = "2";
-          this.list = [];
-          this.page = 1;
-          this.hasData = 0;
-          // this.getDataList();
-          break;
-        case 3:
-          this.type = "3";
           this.list = [];
           this.page = 1;
           this.hasData = 0;
@@ -571,37 +571,38 @@ export default {
       this.getDataList();
     },
     getDataList() {
-      let value;
-      let searchp;
-      if (this.searchphone) {
-        // console.log('this.searchphone:', this.searchphone);
-        searchp = "&phone$=%25" + this.searchphone;
-        // console.log('searchp:', searchp);
-      } else {
-        searchp = "";
-      }
+      // let value;
+      // let searchp;
+      // if (this.searchphone) {
+      //   // console.log('this.searchphone:', this.searchphone);
+      //   searchp = "&phone$=%25" + this.searchphone;
+      //   // console.log('searchp:', searchp);
+      // } else {
+      //   searchp = "";
+      // }
       // let valueDate;
-      if (this.type === "1") {
-        // 根据不同的参数切换tab
-        value = "";
-      } else if (this.type === "2") {
-        value = "new=1&";
-      } else if (this.type === "3") {
-        value = "return=1&";
-      }
-      let valuetitle = "&probe=" + this.bagID;
+      // if (this.type === "0") {
+      //   // 根据不同的参数切换tab
+      //   value = "";
+      // } else if (this.type === "1") {
+      //   value = "new=1&";
+      // } else if (this.type === "2") {
+      //   value = "return=1&";
+      // }
+      // let valuetitle = "&probe=" + this.bagID;
       this.$get(
-        "media/mac/?" +
-          value +
-          "pageSize=10&page=" +
+        "client/maclist?id=" +
+        this.bagID +
+          "&page=" +
           this.page +
-          valuetitle +
-          searchp,
+        '&types=' + this.type +
+        '&keys=' +
+          this.searchphone,
         "",
         res => {
-          console.log('RES:', res);
-          if (res.data.status === 1) {
-            if (res.data.data.length === 0) {
+          console.log('RES匹配列表:', res);
+          if (res.data.code === 200) {
+            if (res.data.data.list.length === 0) {
               this.hasData = 1;
               // console.log('数组长度为0的情况让this.hasData = 1');
               if (this.loadinglayer.length) {
@@ -618,14 +619,14 @@ export default {
             } else {
               if (this.page === 1) {
                 // console.log('page等于1的时候发生page等于1的时候发生');
-                this.list = res.data.data;
+                this.list = res.data.data.list;
               } else {
                 // console.log('page大于1的时候发生');
-                if (this.list[0] && this.list[0].id === res.data.data[0].id) {
-                  this.list = res.data.data;
+                if (this.list[0] && this.list[0].id === res.data.data.list[0].id) {
+                  this.list = res.data.data.list;
                 } else {
-                  for (let key in res.data.data) {
-                    this.list.push(res.data.data[key]);
+                  for (let key in res.data.data.list) {
+                    this.list.push(res.data.data.list[key]);
                   }
                 }
               }
@@ -640,7 +641,7 @@ export default {
             // console.log('else打印res.data.data.msg：', res.data.data.msg);
             Dialog.alert({
               title: "提示",
-              message: res.data.data.msg
+              message: res.data.msg
             });
           }
           // console.info("list数据", this.list);

@@ -6,7 +6,7 @@
         <div class="balance-wrap">
           <div class="balance">
             <span class="symbol">¥</span>
-            <span class="digit">{{moneyStat.total}}</span>
+            <span class="digit">{{moneyStat.balance}}</span>
           </div>
           <div class="name">可用余额(元)</div>
         </div>
@@ -15,16 +15,16 @@
             <div class="other-money">
               <p class="money">
                 <span class="symbol">¥</span>
-                {{moneyStat.today_cost}}
+                {{moneyStat.today}}
               </p>
-              <p class="name">今日花费(元)</p>
+              <p class="name">累计花费(元)</p>
             </div>
           </van-col>
           <van-col :span="12">
             <div class="other-money">
               <p class="money">
                 <span class="symbol">¥</span>
-                {{moneyStat.freeze_total}}
+                {{moneyStat.frozen}}
               </p>
               <p class="name">冻结金额(元)</p>
             </div>
@@ -33,34 +33,34 @@
       </div>
       <van-row class="money-subnav">
         <van-col span="24" style="border-bottom: 0.55px solid #ccc;background-color: #fff">
-          <van-col span="5" :class="{selecttab:dataType == 1}" style="text-align: center">
+          <van-col span="4" :class="{selecttab:dataType == 1}" style="text-align: center">
             <div v-on:click="selectTab(1)">
               <div class="menu-item">充值</div>
             </div>
           </van-col>
-          <!--<van-col span="4" :class="{selecttab:dataType == 2}" style="text-align: center">-->
-            <!--<div v-on:click="selectTab(2)">-->
-              <!--<div class="menu-item">提现</div>-->
-            <!--</div>-->
-          <!--</van-col>-->
-          <van-col span="5" :class="{selecttab:dataType == 3}" style="text-align: center">
-            <div v-on:click="selectTab(3)">
-              <div class="menu-item">退款</div>
+          <van-col span="4" :class="{selecttab:dataType == 2}" style="text-align: center">
+            <div v-on:click="selectTab(2)">
+              <div class="menu-item">匹配</div>
             </div>
           </van-col>
-          <van-col span="5" :class="{selecttab:dataType == 4}" style="text-align: center">
+          <van-col span="4" :class="{selecttab:dataType == 3}" style="text-align: center">
+            <div v-on:click="selectTab(3)">
+              <div class="menu-item">拨号</div>
+            </div>
+          </van-col>
+          <van-col span="4" :class="{selecttab:dataType == 4}" style="text-align: center">
             <div v-on:click="selectTab(4)">
-              <div class="menu-item">匹配</div>
+              <div class="menu-item">短信</div>
             </div>
           </van-col>
           <van-col span="4" :class="{selecttab:dataType == 5}" style="text-align: center">
             <div v-on:click="selectTab(5)">
-              <div class="menu-item">拨号</div>
+              <div class="menu-item">闪信</div>
             </div>
           </van-col>
-          <van-col span="5" :class="{selecttab:dataType == 6}" style="text-align: center">
+          <van-col span="4" :class="{selecttab:dataType == 6}" style="text-align: center">
             <div v-on:click="selectTab(6)">
-              <div class="menu-item">短信</div>
+              <div class="menu-item">退款</div>
             </div>
           </van-col>
         </van-col>
@@ -72,14 +72,35 @@
             <van-col :span="12">
               <h4
                 style="font-size: 14px; color: #666;font-weight: normal; margin-top: 3px;"
-              >{{items.type_link}}</h4>
-              <p style="font-size: 12px; color: #999;">{{items.updated_at}}</p>
+                v-if="items.types === 1"
+              >充值</h4>
+              <h4
+                style="font-size: 14px; color: #666;font-weight: normal; margin-top: 3px;"
+                v-if="items.types === 2"
+              >匹配</h4>
+              <h4
+                style="font-size: 14px; color: #666;font-weight: normal; margin-top: 3px;"
+                v-if="items.types === 3"
+              >拨号</h4>
+              <h4
+                style="font-size: 14px; color: #666;font-weight: normal; margin-top: 3px;"
+                v-if="items.types === 3"
+              >短信</h4>
+              <h4
+                style="font-size: 14px; color: #666;font-weight: normal; margin-top: 3px;"
+                v-if="items.types === 5"
+              >闪信</h4>
+              <h4
+                style="font-size: 14px; color: #666;font-weight: normal; margin-top: 3px;"
+                v-if="items.types === 6"
+              >退款</h4>
+              <p style="font-size: 12px; color: #999;">{{items.times}}</p>
             </van-col>
             <van-col :span="12">
               <!--{{items.price?(Math.floor(items.price * 100) / 100):''}}-->
               <p
                 style="text-align: right; font-size: 18px; color:#4588d4;font-family: 'PingFang SC;height: 40px; line-height: 40px;'"
-              >{{items.price?items.price:''}}</p>
+              >{{items.money?items.money:''}}</p>
             </van-col>
             <!-- <van-col :span="24" >
                 <div class="telephone"  style="padding:5px 0 2px 0;">
@@ -112,11 +133,7 @@ export default {
       list: [],
       page: 1,
       dataType: 1,
-      moneyStat: {
-        freeze_total: "--",
-        total: "--",
-        today_cost: "--"
-      }
+      moneyStat: {}
     };
   },
   watch: {
@@ -135,24 +152,24 @@ export default {
   },
   mounted() {
     this.loadinglayer = document.getElementsByClassName("loading-layer");
-    this.getTotalMoney();
+    // this.getTotalMoney();
     this.getMoneyList();
     console.log('this.list:', this.list);
   },
   methods: {
-    getTotalMoney() {
-      this.$get("media/money?count=1", "", res => {
-        if (res.data.status === 1) {
-          console.info("获取到的金钱", res.data);
-          this.moneyStat = res.data.data;
-        } else {
-          // Dialog.alert({
-          //   title: "提示",
-          //   message: res.data.msg
-          // });
-        }
-      });
-    },
+    // getTotalMoney() {
+    //   this.$get("media/money?count=1", "", res => {
+    //     if (res.data.status === 1) {
+    //       console.info("获取到的金钱", res.data);
+    //       this.moneyStat = res.data.data;
+    //     } else {
+    //       // Dialog.alert({
+    //       //   title: "提示",
+    //       //   message: res.data.msg
+    //       // });
+    //     }
+    //   });
+    // },
     onClickLeft() {
       this.$router.push("/setting");
     },
@@ -165,21 +182,23 @@ export default {
     getMoneyList() {
       // console.log(123);
       this.$get(
-        "media/money/?pageSize=12&page=" + this.page + "&type=" + this.dataType,
+        "client/fundlist?limit=12&page=" + this.page + "&types=" + this.dataType,
         "",
         res => {
-          if (res.data.status === 1) {
+          console.log('reshahhahah:', res);
+          if (res.data.code === 200) {
+            this.moneyStat = res.data.data.account;
             if (this.page === 1) {
               this.list = [];
             }
-            if (res.data.data.length === 0) {
+            if (res.data.data.list.length === 0) {
               this.hasData = 1;
             } else {
-              if (this.list[0] && this.list[0].id === res.data.data[0].id) {
-                this.list = res.data.data;
+              if (this.list[0] && this.list[0].id === res.data.data.list[0].id) {
+                this.list = res.data.data.list;
               } else {
-                for (let key in res.data.data) {
-                  this.list.push(res.data.data[key]);
+                for (let key in res.data.data.list) {
+                  this.list.push(res.data.data.list[key]);
                 }
               }
             }

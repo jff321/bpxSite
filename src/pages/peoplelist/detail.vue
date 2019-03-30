@@ -26,7 +26,7 @@
                 <!--{{items.value}}-->
               <!--</span>-->
           <!--</div>-->
-          <div class="header-date">最后探测 {{dataList.updated_at}}</div>
+          <div class="header-date">最后探测 {{dataList.update_time}}</div>
           <!--<div class="header-date">-->
             <!--通话-->
             <!--<span>0</span>分钟&nbsp;闪信-->
@@ -44,7 +44,7 @@
       <!--<div class="intention"><div class="intentionborder"><div class="circleicon"></div>无意向</div></div>-->
       <div class="equipment-list" style="border-radius: 3px 3px 0px 0px;">
         <div>使用设备</div>
-        <div>{{dataList.type?substrings(dataList.type):''}}</div>
+        <div>{{dataList.phone_name}}</div>
       </div>
       <div class="equipment-list">
         <div>IMEI</div>
@@ -326,32 +326,34 @@ export default {
       });
     },
     getDataList() {
-      this.$get("media/mac/" + this.userId, "", result => {
-        if (result.data.status === 1) {
-          // console.info("获取this.dataList", result.data.data);
+      this.$get("client/macinfo?id=" + this.userId, "", result => {
+        if (result.data.code === 200) {
+          console.info("获取this.dataList", result);
           this.dataList = result.data.data;
           setTimeout(this.getHobbiesList(this.dataList.mac), 1000);
         } else {
           Dialog.alert({
             title: "提示",
-            message: "数据获取失败"
+            message: res.data.msg
           });
         }
       });
     },
     getHobbiesList(value) {
-      console.log('value:', value);
+      // console.log('value111111111:', value);
       if (value !== undefined) {
-        this.$get("media/mac_tag/" + value, "", result => {
-          console.info("获取爱好", result);
-          if (result.data.status === 1) {
+        this.$get("client/mactags?mac=" + value, "", result => {
+          if (result.data.code === 200) {
             console.info("获取爱好", result.data);
             this.basic = result.data.data.basic;
             this.behaviour = result.data.data.behaviour;
             this.focus = result.data.data.app;
             this.application = result.data.data.application;
           } else {
-            console.info(result.data.msg);
+            Dialog.alert({
+              title: "提示",
+              message: result.data.msg
+            });
           }
         });
       }

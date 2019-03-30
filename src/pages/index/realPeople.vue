@@ -73,23 +73,23 @@
             </div>
           </div>
           <div class="people-info-wrap">
-            <p class="mobile">{{tel(item.phone?item.phone:'***********')}}</p>
+            <p class="mobile">{{item.phone}}</p>
             <p class="listItem">mac {{item.mac}}</p>
             <!--<p class="other-info">-->
             <p>
-              <span class="times">到店{{item.many}}次</span>&nbsp;&nbsp;&nbsp;
+              <span class="times">到店{{item.nums}}次</span>&nbsp;&nbsp;&nbsp;
               <span class="device-type">
                 <span style="color: rgba(0,0,0,0.2);vertical-align: -4px">
                   <icon name="mobile"/>
                 </span>
-                <span style="color: rgba(0,0,0,0.6)">{{item.type?substrings(item.type):''}}</span>
+                <span style="color: rgba(0,0,0,0.6)">{{item.phone_name}}</span>
               </span>
             </p>
             <p class="listItem">
-              <span class="distance">距离{{item.distance}}</span>
+              <span class="distance">距离{{item.range}}</span>
             </p>
             <!--</p>-->
-            <p class="time">最后到店&nbsp;{{item.updated_at}}</p>
+            <p class="time">最后到店&nbsp;{{item.update_time}}</p>
             <!--<p class="time">驻留时间&nbsp;{{parseInt(item.time / 3600)}}h</p>-->
           </div>
         </div>
@@ -187,32 +187,32 @@ export default {
       ],
       orderBy: {
         label: "最后时间降序",
-        value: "updated_at.desc"
+        value: "1"
       },
       orderbyItems: [
         {
           label: "最后时间降序",
-          value: "updated_at.desc"
+          value: "1"
         },
         {
           label: "最后时间升序",
-          value: "updated_at.asc"
+          value: "2"
         },
         {
           label: "距离降序",
-          value: "rssi.desc"
+          value: "3"
         },
         {
           label: "距离升序",
-          value: "rssi.asc"
+          value: "4"
         },
         {
           label: "驻留时间降序",
-          value: "time.desc"
+          value: "5"
         },
         {
           label: "驻留时间升序",
-          value: "time.asc"
+          value: "6"
         }
       ]
     };
@@ -388,10 +388,10 @@ export default {
         this.add0((value[1].getDate() + 1));
     },
     getProbeList() {
-      this.$get("probe/binding", "", res => {
-        if (res.data.status === 1) {
-          for (let key in res.data.data) {
-            console.log(key);
+      this.$get("client/getbox", "", res => {
+        if (res.data.code === 200) {
+          // for (let key in res.data.data) {
+            // console.log(key);
             this.markers.push({
               // position: [res.data.data[key].lng, res.data.data[key].lat]
               position: [104.066541, 30.572269]
@@ -400,16 +400,16 @@ export default {
               // position: [res.data.data[key].lng, res.data.data[key].lat]
               position: [104.066541, 30.572269]
             });
-          }
+          // }
           this.binding = res.data.data;
           this.binding.forEach(ele => {
             this.devices.push({
               label: ele.name,
-              value: ele.number_id
+              value: ele.code
             });
           });
         } else {
-          console.info("数据获取失败");
+          this.$status(res.data.msg);
         }
       });
     },
@@ -417,16 +417,17 @@ export default {
       this.isShowDetail = value;
     }, // 改变详情页popups状态
     getCountList() {
-      let mid;
-      if (!this.device.value) {
-        mid = "";
-      } else {
-        mid = "&mid=" + this.device.value;
-      }
-      let updated =
-        "updated_at$" + "=>=" + this.beginTime + ",<=" + this.endTime;
-      this.$get("mac/count/?" + updated + mid, "", res => {
-        if (res.data.status === 1) {
+      // console.log('this.device.value1111111:', this.device.value);
+      // let mid;
+      // if (!this.device.value) {
+      //   mid = "";
+      // } else {
+      //   mid = "&mid=" + this.device.value;
+      // }
+      // let updated =
+      //   "updated_at$" + "=>=" + this.beginTime + ",<=" + this.endTime;
+      this.$get("client/count?box_id=" + this.device.value, "", res => {
+        if (res.data.code === 200) {
           this.peopleList = res.data.data;
           let temp = [];
           temp.push({
@@ -447,10 +448,10 @@ export default {
           });
           this.peopleTabs = temp;
         } else {
-          // Dialog.alert({
-          //   title: "提示",
-          //   message: res.data.msg
-          // });
+          Dialog.alert({
+            title: "提示",
+            message: res.data.msg
+          });
         }
       });
     },
@@ -502,16 +503,17 @@ export default {
       let updated =
         "&updated_at$" + "=>=" + this.beginTime + ",<=" + this.endTime;
       this.$get(
-        "media/mac/?" +
-          value +
-          "pageSize=10&page=" +
-          this.page +
-          valuetitle +
-          valueDate +
-          updated,
+        "client/reallist?page=" + this.page + "&keys=" + this.keyword + "&box_id=" + this.device.value + "&sort=" + this.orderBy.value,
+          // value +
+          // "pageSize=10&page=" +
+          // this.page +
+          // valuetitle +
+          // valueDate +
+          // updated,
         "",
         res => {
-          if (res.data.status === 1) {
+          console.log('RES!!!!!!!', res);
+          if (res.data.code === 200) {
             if (res.data.data.length === 0) {
               // this.hasData = 1;
               this.hasData = false;
@@ -521,7 +523,7 @@ export default {
             } else {
               this.hasData = true;
 
-              this.total = res.data.mate.total;
+              // this.total = res.data.mate.total;
               if (this.page === 1) {
                 this.list = res.data.data;
               } else {
@@ -537,11 +539,7 @@ export default {
 
               done && done();
             }
-            // if (this.list.length === 0) {
-            //   if (this.loadinglayer.length) {
-            //     this.loadinglayer[0].style.opacity = 0;
-            //   }
-            // }
+           console.log('this.list:', this,list);
           } else {
             // this.hasData = 1;
             this.hasData = false;

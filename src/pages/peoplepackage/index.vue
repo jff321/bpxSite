@@ -316,8 +316,21 @@ export default {
               this.loadinglayer[0].style.opacity = 0;
             }
           }
+        } else if (result.data.code === 403){
+          // console.log('else打印res.data.data.msg：', res.data.data.msg);
+          Dialog.alert({
+            title: "提示",
+            message: result.data.msg
+          }).then(() => {
+            this.$router.push({
+              name: 'login'
+            })
+          });
         } else {
-          this.$status(result.data.msg)
+          Dialog.alert({
+            title: "提示",
+            message: result.data.msg
+          })
         }
         console.log('this.list:', this.list)
       });

@@ -15,7 +15,7 @@
         <van-col span="8" :class="{selecttab:type == 0}" style="text-align: center">
           <div v-on:click="selectTab(0)">
             <div class="peoplelist-tab-title">全部</div>
-            <div class="peoplelist-tab-num">{{peopleList.total_count}}</div>
+            <div class="peoplelist-tab-num">{{peopleList.total}}</div>
             <div>
               <div class="line-box" :class="{bgcolor:type == 0}"></div>
             </div>
@@ -24,7 +24,7 @@
         <van-col span="8" :class="{selecttab:type == 1}" style="text-align: center">
           <div v-on:click="selectTab(1)">
             <div class="peoplelist-tab-title">新访客</div>
-            <div class="peoplelist-tab-num">{{peopleList.new_count}}</div>
+            <div class="peoplelist-tab-num">{{peopleList.new}}</div>
             <div>
               <div class="line-box" :class="{bgcolor:type == 1}"></div>
             </div>
@@ -33,7 +33,7 @@
         <van-col span="8" :class="{selecttab:type == 2}" style="text-align: center">
           <div v-on:click="selectTab(2)">
             <div class="peoplelist-tab-title">回头客</div>
-            <div class="peoplelist-tab-num">{{peopleList.back_count}}</div>
+            <div class="peoplelist-tab-num">{{peopleList.old}}</div>
             <div>
               <div class="line-box" :class="{bgcolor:type == 2}"></div>
             </div>
@@ -119,19 +119,18 @@
               <van-col :span="4">
                 <div
                   class="i-telephone"
-                  @click="getTelephone(items.id, items.mac)"
-                  v-if="items.is_call === 0"
+                  @click="getTelephone(items.mac_id)"
                 >
                   <icon name="phone" scale="1.6"/>
                 </div>
-                <div
-                  class="i-telephone"
-                  style="background-color:#999"
-                  @click="getTelephone(items.id, items.mac)"
-                  v-if="items.is_call === 1"
-                >
-                  <icon name="phone" scale="1.6"/>
-                </div>
+                <!--<div-->
+                  <!--class="i-telephone"-->
+                  <!--style="background-color:#999"-->
+                  <!--@click="getTelephone(items.id, items.mac)"-->
+                  <!--v-if="items.is_call === 1"-->
+                <!--&gt;-->
+                  <!--<icon name="phone" scale="1.6"/>-->
+                <!--</div>-->
               </van-col>
             </van-col>
           </van-col>
@@ -178,10 +177,11 @@
               <div class="bagDiv">距离范围 :</div>
             </van-col>
             <van-col :span="15" style="text-align: left;">
-              <div class="bagDiv">{{attribute.distance_link}}</div>
-              <!--<select name="bind" id="juli" disabled  v-model="distanceSelect"  style="width: 90%;height:30px;border:none;background-color: #fff;">-->
-              <!--<option :value="items.value" v-for="(items,index) in distance">{{items.label}}</option>-->
-              <!--</select>-->
+              <div class="bagDiv" v-if="attribute.range_id === 0">不限</div>
+              <div class="bagDiv" v-if="attribute.range_id === 1">50米内</div>
+              <div class="bagDiv" v-if="attribute.range_id === 2">30米内</div>
+              <div class="bagDiv" v-if="attribute.range_id === 3">10米内</div>
+              <div class="bagDiv" v-if="attribute.range_id === 4">5米内</div>
             </van-col>
           </van-col>
           <van-col :span="24" class="pt5">
@@ -411,6 +411,7 @@ export default {
     // 获取多个手机号，用于拨打电话
     this.$get('client/phonelist', '', res => {
       this.phoneList = res.data.data;
+      this.$store.state.dialedPhone = this.phoneList[this.selectPhone]
     });
   },
   methods: {
@@ -420,17 +421,18 @@ export default {
     deletethis() {
       // 删除人群包
       // http://www.adbpx.com/api/manager/probe/crowd/数据id
+      // console.log('this.$route.params.id:', this.$route.params.id);
       Dialog.confirm({
         title: "提示",
         message: "确定删除此人群包？"
       })
         .then(() => {
-          this.$delete("probe/crowd/" + this.$route.params.id, "", result => {
-            Dialog.alert({
-              title: "提示",
-              message: result.data.msg
-            });
-            if (result.data.status === 1) {
+          this.$post("client/delmate?id=" + this.$route.params.id, "", result => {
+            // Dialog.alert({
+            //   title: "提示",
+            //   message: result.data.msg
+            // });
+            if (result.data.code === 200) {
               this.onClickLeft();
             } else {
               Dialog.alert({
@@ -459,19 +461,20 @@ export default {
       this.$router.push("/peoplepackage");
       // history.back();
     }, // 后退
-    getTelephone(value, mac) {
+    getTelephone(value) {
       let params = {
         id: value,
-        userPhone: this.phoneList[this.selectPhone].phone
+        phone: this.phoneList[this.selectPhone]
       };
-      console.info("传输的值", params);
-      this.$post("media/mac_phone", params, result => {
-        console.info('获取到的数据ssss', result);
-        if (result.data.status === 1) {
-          this.mac = mac;
+      // console.info("传输的值", params);
+      this.$post("client/docall", params, result => {
+        // console.info('获取到的数据ssss', result);
+        if (result.data.code === 200) {
+          // this.mac = mac;
           this.isShowTip = true;
-          this.telephone = result.data.data.phone;
+          this.telephone = result.data.data;
         } else {
+          this.isShowTip = true;
           Dialog.alert({
             title: "提示",
             message: result.data.msg
@@ -492,8 +495,8 @@ export default {
       }, 500);
     },
     getBingding() {
-      this.$get("probe/binding", "", res => {
-        if (res.data.status === 1) {
+      this.$get("client/getbox", "", res => {
+        if (res.data.code === 200) {
           this.binding = res.data.data;
         } else {
           Dialog.alert({
@@ -504,12 +507,13 @@ export default {
       });
     },
     getBagAttribute() {
-      this.$get("probe/crowd/" + this.bagID, "", res => {
-        if (res.data.status === 1) {
+      this.$get("client/mateinfo?id=" + this.bagID, "", res => {
+        if (res.data.code === 200) {
+          // console.log('res:', res);
           this.attribute = res.data.data;
-          this.attribute.min_time = parseInt(this.attribute.min_time) / 60 ? parseInt(this.attribute.min_time) / 60 : 0;
-          this.attribute.max_time = parseInt(this.attribute.max_time) / 60 ? parseInt(this.attribute.max_time) / 60 : '不限';
-          console.info("人群包属性", this.attribute);
+          // this.attribute.min_time = parseInt(this.attribute.min_time) / 60 ? parseInt(this.attribute.min_time) / 60 : 0;
+          // this.attribute.max_time = parseInt(this.attribute.max_time) / 60 ? parseInt(this.attribute.max_time) / 60 : '不限';
+          // console.info("人群包属性", this.attribute);
           this.distanceSelect = res.data.data.distance;
           this.bindSelect = res.data.data.mid_link
             ? res.data.data.mid_link.number_id
@@ -527,15 +531,21 @@ export default {
       this.showPopup = !this.showPopup;
     },
     getCountList() {
-      this.$get("mac/count?probe=" + this.bagID, "", res => {
-        if (res.data.status === 1) {
+      this.$get("client/maccount?id=" + this.bagID, "", res => {
+        if (res.data.code === 200) {
           this.peopleList = res.data.data;
-          console.log('this.peopleList:', this.peopleList);
-        } else {
+          // console.log('this.peopleList:', this.peopleList);
+        } else if (res.data.code === 403){
           Dialog.alert({
             title: "提示",
             message: res.data.msg
+          }).then(()=>{
+            this.$router.push({
+              name: 'login'
+            })
           });
+        } else {
+          this.$status(res.data.msg)
         }
       });
     },
@@ -564,32 +574,26 @@ export default {
       }
       this.getDataList();
     },
-    onSearch() {
-      console.log('搜索');
-      this.isSearch = 1;
-      this.page = 1;
-      this.getDataList();
-    },
     getDataList() {
-      // let value;
-      // let searchp;
-      // if (this.searchphone) {
-      //   // console.log('this.searchphone:', this.searchphone);
-      //   searchp = "&phone$=%25" + this.searchphone;
-      //   // console.log('searchp:', searchp);
-      // } else {
-      //   searchp = "";
-      // }
-      // let valueDate;
-      // if (this.type === "0") {
-      //   // 根据不同的参数切换tab
-      //   value = "";
-      // } else if (this.type === "1") {
-      //   value = "new=1&";
-      // } else if (this.type === "2") {
-      //   value = "return=1&";
-      // }
-      // let valuetitle = "&probe=" + this.bagID;
+      let value;
+      let searchp;
+      if (this.searchphone) {
+        // console.log('this.searchphone:', this.searchphone);
+        searchp = "&phone$=%25" + this.searchphone;
+        // console.log('searchp:', searchp);
+      } else {
+        searchp = "";
+      }
+      let valueDate;
+      if (this.type === "0") {
+        // 根据不同的参数切换tab
+        value = "";
+      } else if (this.type === "1") {
+        value = "new=1&";
+      } else if (this.type === "2") {
+        value = "return=1&";
+      }
+      let valuetitle = "&probe=" + this.bagID;
       this.$get(
         "client/maclist?id=" +
         this.bagID +
@@ -597,26 +601,26 @@ export default {
           this.page +
         '&types=' + this.type +
         '&keys=' +
-          this.searchphone,
+        this.searchphone,
         "",
         res => {
           console.log('RES匹配列表:', res);
           if (res.data.code === 200) {
-            if (res.data.data.list.length === 0) {
-              this.hasData = 1;
-              // console.log('数组长度为0的情况让this.hasData = 1');
-              if (this.loadinglayer.length) {
-                // console.log('打印一下this.loadinglayer：', this.loadinglayer);
-                // console.log('打印一下this.loadinglayer.length：', this.loadinglayer.length);
-                this.loadinglayer[0].style.opacity = 1;
-              }
-              if (this.isSearch === 1) {
-                Dialog.alert({
-                  title: "提示",
-                  message: "没有搜索到数据"
-                });
-              }
-            } else {
+            // if (res.data.data.list.length === 0) {
+            //   this.hasData = 1;
+            //   // console.log('数组长度为0的情况让this.hasData = 1');
+            //   if (this.loadinglayer.length) {
+            //     // console.log('打印一下this.loadinglayer：', this.loadinglayer);
+            //     // console.log('打印一下this.loadinglayer.length：', this.loadinglayer.length);
+            //     this.loadinglayer[0].style.opacity = 1;
+            //   }
+            //   // if (this.isSearch === 1) {
+            //   //   Dialog.alert({
+            //   //     title: "提示",
+            //   //     message: "没有搜索到数据"
+            //   //   });
+            //   // }
+            // } else {
               if (this.page === 1) {
                 // console.log('page等于1的时候发生page等于1的时候发生');
                 this.list = res.data.data.list;
@@ -630,23 +634,38 @@ export default {
                   }
                 }
               }
-            }
+            // }
             if (this.list.length === 0) {
               // console.log('if (this.list.length === 0的情况下出现');
               if (this.loadinglayer.length) {
                 this.loadinglayer[0].style.opacity = 0;
               }
             }
-          } else {
+          } else if (res.data.code === 403){
             // console.log('else打印res.data.data.msg：', res.data.data.msg);
             Dialog.alert({
               title: "提示",
               message: res.data.msg
+            }).then(() => {
+              this.$router.push({
+                name: 'login'
+              })
             });
+          } else {
+            Dialog.alert({
+              title: "提示",
+              message: res.data.msg
+            })
           }
           // console.info("list数据", this.list);
         }
       );
+    },
+    onSearch() {
+      // console.log('搜索');
+      // this.isSearch = 1;
+      this.page = 1;
+      this.getDataList();
     },
     // 下拉刷新
     refresh(done) {

@@ -10,7 +10,7 @@
         <div>
           <div class="header-date">最后探测 {{dataList.updated_at}}</div>
         </div>
-        <div class="icon-telephone" @click="getTelephone(dataList.id)">
+        <div class="icon-telephone" @click="getTelephone()">
           <icon name="phone" scale="1.6"/>
         </div>
       </div>
@@ -18,7 +18,7 @@
     <div class="equipment-list-box">
       <div class="equipment-list" style="border-radius: 3px 3px 0px 0px;">
         <div>使用设备</div>
-        <div>{{dataList.type?substrings(dataList.type):''}}</div>
+        <div>{{dataList.phone_name}}</div>
       </div>
       <div class="equipment-list">
         <div>IMEI</div>
@@ -83,7 +83,6 @@
         <user-tag :mac="userMac" :showbiaoji="isShowUserTag"></user-tag>
       </van-popup>
     </div>
-    <!--用户标记-->
     <!--电话-->
     <div class="popus" v-if="isShowPopus">
       <div class="popus-center">
@@ -233,17 +232,26 @@
         });
         // if () {}
       },
-      getTelephone(value) {
-        // console.log('获取电话');
-        let params = {
-          id: value
-        };
-        this.$post("media/mac_phone", params, result => {
-          if (result.data.status === 1) {
-            this.telephone = result.data.data.phone;
+      getTelephone() {
+        let params;
+        if(this.$store.state.dailedPhone === "undefined"){
+          params = {
+            id: this.$route.params.id,
+            phone: localStorage.getItem('telephone')
+          };
+        } else {
+          params = {
+            id: this.$route.params.id,
+            phone: this.$store.state.dailedPhone
+          };
+        }
+
+        this.$post("client/docall", params, result => {
+          if (result.data.code === 200) {
+            console.log('result:', result);
+            this.telephone = result.data.data;
             this.isShowTip = true;
             // console.log('this.telephone:', this.telephone);
-            console.log('动态路由：1111111111111111111111111111111', this.routing);
             if (this.routing.name === "peoplelistpackage") {
               this.$router.push(
                 this.routing.path +
@@ -262,6 +270,7 @@
               );
             }
           } else {
+            this.isShowTip = false;
             Dialog.alert({
               title: "提示",
               message: result.data.msg
@@ -270,23 +279,25 @@
         });
       },
       getDataList() {
-        this.$get("media/mac/" + this.$route.params.id, "", result => {
-          if (result.data.status === 1) {
+        this.$get("client/macinfo?id=" + this.$route.params.id, "", result => {
+          if (result.data.code === 200) {
+            console.info("获取this.dataList", result);
             this.dataList = result.data.data;
             setTimeout(this.getHobbiesList(this.dataList.mac), 1000);
           } else {
             Dialog.alert({
               title: "提示",
-              message: "数据获取失败"
+              message: res.data.msg
             });
           }
         });
       },
       getHobbiesList(value) {
-        console.log('value:', value);
+        // console.log('value111111111:', value);
         if (value !== undefined) {
-          this.$get("media/mac_tag/" + value, "", result => {
-            if (result.data.status === 1) {
+          this.$get("client/mactags?mac=" + value, "", result => {
+            if (result.data.code === 200) {
+              // console.info("获取爱好", result.data);
               this.basic = result.data.data.basic;
               this.behaviour = result.data.data.behaviour;
               this.focus = result.data.data.app;

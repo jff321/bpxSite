@@ -5,21 +5,21 @@
         <img v-if="user.company_photo_url" :src="user.company_photo_url" class="avatar" @click="triggerUpload">
         <img v-else src="./imgs/head.png" class="avatar" @click="triggerUpload">
         <!--<input id="files" type="file" accept="image/*" style="display: none" ref="inputer" @change="uploadFile">-->
-        <el-upload
-          style="display: none;"
-          class="upload-demo"
-          ref="upload"
-          action="http://c.adbpx.com/api/manager/upload/files"
-          :on-success="uploadSuccess"
-          limit=1
-          :on-exceed="handleExceed"
-          accept="image/*"
-          :file-list="fileList">
-          <div class="buttonDiv">
-            <el-button id="files" size="small" type="primary">点击上传</el-button>
-          </div>
-          <div slot="tip" class="el-upload__tip">只能上传txt文件，一次一个</div>
-        </el-upload>
+        <!--<el-upload-->
+          <!--style="display: none;"-->
+          <!--class="upload-demo"-->
+          <!--ref="upload"-->
+          <!--action="http://c.adbpx.com/api/manager/upload/files"-->
+          <!--:on-success="uploadSuccess"-->
+          <!--limit=1-->
+          <!--:on-exceed="handleExceed"-->
+          <!--accept="image/*"-->
+          <!--:file-list="fileList">-->
+          <!--<div class="buttonDiv">-->
+            <!--<el-button id="files" size="small" type="primary">点击上传</el-button>-->
+          <!--</div>-->
+          <!--<div slot="tip" class="el-upload__tip">只能上传txt文件，一次一个</div>-->
+        <!--</el-upload>-->
         <p class="mobile">{{user.phone}}</p>
         <p class="mobile">{{user.company_name}}</p>
       </div>
@@ -77,8 +77,8 @@ export default {
   data() {
     return {
       user: {
-        telId: localStorage.getItem("telId"),
-        phone: '',
+        // telId: localStorage.getItem("uid"),
+        phone: localStorage.getItem("telephone"),
         company_name: localStorage.getItem("company_name"),
         company_photo_url: localStorage.getItem("company_photo"),
         company_photo_name: ''
@@ -106,12 +106,6 @@ export default {
     if (this.user.company_photo_url === 'null') {
       this.user.company_photo_url = 'http://c.adbpx.com/images/20190108152433.jpg';
     }
-    this.$get("common/user?id=" + this.user.telId, "", res => {
-      this.user.company_photo_url = res.data.data[0].picture_link.big; // 公司头像路径
-      this.user.company_name = res.data.data[0].company_name; // 公司名字
-      this.user.company_photo_name = res.data.data[0].picture; // 公司头像名称
-      this.user.phone = res.data.data[0].phone;
-    });
   },
   methods: {
     logout() {
@@ -124,7 +118,7 @@ export default {
           this.$post('client/logout', localStorage.getItem('token'), (result) => {
             console.log('result:', result);
             if (result.data.code === 200) {
-              localStorage.removeItem("token");
+              localStorage.clear();
               this.$router.push("/login/index");
             } else {
               this.$status(result.data.msg);

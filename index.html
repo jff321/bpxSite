@@ -6,7 +6,7 @@
     <meta name="format-detection" content="telephone=no,email=no,adress=no"/>
     <meta name="renderer" content="webkit">
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <link rel="shortcut icon" type="image/x-icon" href="static/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="static/bpx.ico">
     <!--<link rel="shortcut icon" type="image/x-icon" href="static/jukebao.png">-->
     <title></title>
   </head>
@@ -18,10 +18,14 @@
         var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
         link.type = 'image/x-icon';
         link.rel = 'shortcut icon';
-        this.axios.get('http://c.adbpx.com/api/logo')
+        this.axios.get('http://192.168.0.120/client/logo')
           .then((response) => {
-            link.href = response.data.data.logo_link.small;
-            localStorage.setItem("avatorUrl", response.data.data.logo_link.big);
+            if(response.data.code === 200){
+              link.href = response.data.data.logo_url;
+              localStorage.setItem("avatorUrl", response.data.data.logo_url);
+            } else {
+              this.$status(res.data.msg)
+            }
           })
           .catch(function (error) {
             console.log(error);

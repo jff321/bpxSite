@@ -93,34 +93,56 @@
         <div class="tag-histories">
           <div class="tag-wrap" v-for="(items,index) in list" :key="index">
             <div class="tag">
-              <div class="time">{{items.created_at}}</div>
+              <div class="time">{{items.create_time}}</div>
               <van-row>
                 <van-col :span="12">
                   <div class="info-box">
                     <span
+                      v-if="items.types === 1"
                       class="customer-type"
-                      :class="{typecolor1:items.customer_type === '1', typecolor2:items.customer_type === '2', typecolor3:items.customer_type === '3'}"
-                    >{{items.customer_type_link}}</span>
+                      :class="{typecolor1:items.types === 1, typecolor2:items.types === 2, typecolor3:items.types === 3}"
+                    >普通客户</span>
+                    <span
+                      v-if="items.types === 2"
+                      class="customer-type"
+                      :class="{typecolor1:items.types === 1, typecolor2:items.types === 2, typecolor3:items.types === 3}"
+                    >积极客户</span>
+                    <span
+                      v-if="items.types === 3"
+                      class="customer-type"
+                      :class="{typecolor1:items.types === 1, typecolor2:items.types === 2, typecolor3:items.types === 3}"
+                    >高价值客户</span>
                     <p class="key-value">
                       <span class="label">客户姓名</span>
-                      <span class="value">{{items.user || '无'}}</span>
+                      <span class="value">{{items.uname || '无'}}</span>
                     </p>
                   </div>
                 </van-col>
                 <van-col :span="12">
                   <div class="info-box right">
                     <span
+                      v-if="items.follow === 1"
                       class="follow-type"
-                      :class="{statecolor1:items.type_status === '1',statecolor2:items.type_status === '2',statecolor3:items.type_status === '3'}"
-                    >{{items.type_status_link}}</span>
+                      :class="{statecolor1:items.follow === 1,statecolor2:items.follow === 2,statecolor3:items.follow === 3}"
+                    >持续跟进</span>
+                    <span
+                      v-if="items.follow === 2"
+                      class="follow-type"
+                      :class="{statecolor1:items.follow === 1,statecolor2:items.follow === 2,statecolor3:items.follow === 3}"
+                    >暂无意向</span>
+                    <span
+                      v-if="items.follow === 3"
+                      class="follow-type"
+                      :class="{statecolor1:items.follow === 1,statecolor2:items.follow === 2,statecolor3:items.follow === 3}"
+                    >新转入</span>
                     <p class="key-value">
                       <span class="label">负责人</span>
-                      <span class="value">{{items.charge || '无'}}</span>
+                      <span class="value">{{items.contact || '无'}}</span>
                     </p>
                   </div>
                 </van-col>
               </van-row>
-              <div class="memo-wrap">备注:&nbsp;{{items.remarks || '无'}}</div>
+              <div class="memo-wrap">备注:&nbsp;{{items.remark || '无'}}</div>
             </div>
           </div>
           <!-- <customer-list :lists="list" :isshow="false"></customer-list> -->
@@ -172,6 +194,9 @@ export default {
       this.update = null;
     },
     getDataList() {
+      // if(this.usermac === 0){
+      //   return false
+      // }
       this.$get("client/cinfo?id=" + this.usermac, "", res => {
         console.info("信息详情", res);
         if (res.data.code === 200) {
@@ -183,15 +208,15 @@ export default {
             this.update = null;
           } else {
             this.showAdd = false;
-            this.list = res.data.data;
-            this.type = res.data.data[0].type;
-            this.customerName = res.data.data[0].user;
-            this.headerName = res.data.data[0].charge;
-            this.selectType = res.data.data[0].customer_type;
-            this.selectStatus = res.data.data[0].type_status;
-            this.note = res.data.data[0].remarks;
-            this.phone = res.data.data[0].phone;
-            this.update = res.data.data[0].updated_at;
+            this.list = res.data.data.list;
+            this.type = res.data.data.list[0].letter;
+            this.customerName = res.data.data.list[0].uname;
+            this.headerName = res.data.data.list[0].contact;
+            this.selectType = res.data.data.list[0].types;
+            this.selectStatus = res.data.data.list[0].follow;
+            this.note = res.data.data.list[0].remark;
+            this.phone = res.data.data.info.mobile;
+            this.update = res.data.data.info.create_time;
           }
         } else {
           Dialog.alert({
@@ -213,12 +238,11 @@ export default {
         contact: this.headerName,
         follow: this.selectType,
         remark: this.selectStatus,
-        // mac: this.usermac,
-        type: this.type
       };
-      console.info("传的参数", params);
+      // console.info("传的参数", params);
       this.$post("client/dotags", params, res => {
-        if (res.data.status === 1) {
+        if (res.data.code === 200) {
+          console.log('*********************************');
           Dialog.alert({
             title: "提示",
             message: res.data.msg

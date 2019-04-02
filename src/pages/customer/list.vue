@@ -34,17 +34,28 @@
             </p>
             <p class="other-info">
               <span class="label">意&emsp;向:</span>
-              <span v-if="items.follow === 0" class="value">无</span>
-              <span v-if="items.follow === 1" class="value">持续跟进</span>
-              <span v-if="items.follow === 2" class="value">暂无意向</span>
-              <span v-if="items.follow === 3" class="value">新转入</span>
+              <span v-if="items.letter === 1" class="value">意向</span>
+              <span v-if="items.letter === 2" class="value">无意向</span>
+              <span v-if="items.letter === 3" class="value">空号</span>
+              <span v-if="items.letter === 4" class="value">未接通</span>
             </p>
           </van-col>
           <van-col :span="8">
             <div
+              v-if="items.follow === 1"
               class="follow-state"
-              :class="{statecolor1:items.type_status === '1',statecolor2:items.type_status === '2',statecolor3:items.type_status === '3'}"
-            >{{items.type_status_link}}</div>
+              :class="{statecolor1:items.follow === 1,statecolor2:items.follow === 2,statecolor3:items.follow === 3}"
+            >持续跟进</div>
+            <div
+              v-if="items.follow === 2"
+              class="follow-state"
+              :class="{statecolor1:items.follow === 1,statecolor2:items.follow === 2,statecolor3:items.follow === 3}"
+            >暂无意向</div>
+            <div
+              v-if="items.follow === 3"
+              class="follow-state"
+              :class="{statecolor1:items.follow === 1,statecolor2:items.follow === 2,statecolor3:items.follow === 3}"
+            >新转入</div>
             <div class="actions">
               <span @click.stop="sendFlash(items.phone)" v-if="isShow" class="icon-wrap">
                 <img src="./imgs/flash.png" alt width="20">
@@ -53,7 +64,7 @@
                 <img src="./imgs/message.png" width="20" alt>
               </span>
               <span
-                @click.stop="getTelephone(items.phone, items.id)"
+                @click.stop="getTelephone(items.phone, items.mac_id)"
                 class="icon-wrap"
                 v-if="isShow"
               >

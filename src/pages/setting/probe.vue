@@ -102,26 +102,58 @@
 
     },
     mounted() {
-      this.getDataList();
+      // this.getDataList();
     },
     methods: {
       getDataList() {
         this.$get(`client/boxlist?page=${this.page}&limit=${this.limit}`,
           "",
           result => {
-          console.log('result.data.data.list:', result.data.data.list);
-          if (result.data.data.list.length) {
-            this.list = result.data.data.list;
-            // if(result.data.data.list.length > 10){
-            //   this.hasData = 1
-            // }
-          } else {
-            this.hasData = 1; // 返回没有数据
-          }
-          if (this.list.length === 0) {
-            if (this.loadinglayer.length) {
-              this.loadinglayer[0].style.opacity = 0;
+          // console.log('result.data.data.list:', result.data.data.list);
+          // if (result.data.data.list.length) {
+          //   this.list = result.data.data.list;
+          //   // if(result.data.data.list.length > 10){
+          //   //   this.hasData = 1
+          //   // }
+          // } else {
+          //   this.hasData = 1; // 返回没有数据
+          // }
+          // if (this.list.length === 0) {
+          //   if (this.loadinglayer.length) {
+          //     this.loadinglayer[0].style.opacity = 0;
+          //   }
+          // }
+
+          if (result.data.code === 200) {
+            if (this.page === 1) {
+              this.list = [];
             }
+            if (result.data.data.list.length === 0) {
+              this.hasData = 1;
+            } else {
+              if (this.page === 1) {
+                this.list = result.data.data.list;
+              } else {
+                if (this.list[0] && this.list[0].id === result.data.data.list[0].id) {
+                  this.list = result.data.data.list;
+                } else {
+                  for (let key in result.data.data.list) {
+                    this.list.push(result.data.data.list[key]);
+                  }
+                }
+              }
+            }
+            if (this.list.length === 0) {
+              if (this.loadinglayer.length) {
+                this.loadinglayer[0].style.opacity = 0;
+              }
+            }
+          } else {
+            // this.hasData = 1;
+            Dialog.alert({
+              title: "提示",
+              message: res.data.msg
+            });
           }
         });
       },
@@ -131,17 +163,15 @@
           this.list = [];
           this.hasData = 0;
           this.getDataList();
-          done();
+          done(true);
         }, 1500);
       },
       infinite(done) {
         // 加载更多插件
-        if (!this.hasData) {
-          console.log('this.hasData111111111:', this.hasData);
+        if (this.hasData) {
           // 代表没有 更多数据了
           done(true);
         } else {
-          console.log('this.hasData22222222:', this.hasData);
           setTimeout(() => {
             this.getDataList();
             setTimeout(() => {

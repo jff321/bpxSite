@@ -359,7 +359,7 @@ export default {
             this.onClickLeft();
           });
         } else {
-          console.log('进入else');
+          // console.log('进入else');
           Dialog.alert({
             title: "提示",
             message: res.data.msg

@@ -62,7 +62,7 @@
           class="people-item"
           v-for="(item,index) in list"
           :key="index"
-          @click="openDetail(item);"
+          @click="openDetail(item)"
         >
           <div class="user-avatar-wrap">
             <div class="user-avatar">
@@ -321,15 +321,24 @@ export default {
       this.showOrderPicker = false;
     },
     onSearch(keyword) {
+      // console.log('搜索11111111111111111', keyword);
       if (keyword !== '') {
         clearInterval(this.times);
-        this.$get('media/mac/?mac$=%25' + `${keyword}%`, '', res => {
-          if (res.data.status === 1) {
-            this.searchList = res.data.data;
+        // this.$get('media/mac/?mac$=%25' + `${keyword}%`, '', res => {
+        //   if (res.data.status === 1) {
+        //     this.searchList = res.data.data;
+        //     this.isSearch = true;
+        //     this.list = this.searchList;
+        //   }
+        // });
+        this.$get(
+          "client/reallist?page=1" + "&keys=" + this.keyword + "&box_id=" + this.device.value + "&sort=" + this.orderBy.value,
+          "",
+          res => {
+            this.searchList = res.data.data.list;
             this.isSearch = true;
             this.list = this.searchList;
-          }
-        });
+          });
       } else {
         this.isSearch = false;
         this.loadinglayer = document.getElementsByClassName("loading-layer");
@@ -512,9 +521,9 @@ export default {
           // updated,
         "",
         res => {
-          console.log('RES!!!!!!!', res);
+          // console.log('RES!!!!!!!', res);
           if (res.data.code === 200) {
-            if (res.data.data.length === 0) {
+            if (res.data.data.list.length === 0) {
               // this.hasData = 1;
               this.hasData = false;
               if (done) {
@@ -525,13 +534,13 @@ export default {
 
               // this.total = res.data.mate.total;
               if (this.page === 1) {
-                this.list = res.data.data;
+                this.list = res.data.data.list;
               } else {
-                if (this.list[0] && this.list[0].id === res.data.data[0].id) {
-                  this.list = res.data.data;
+                if (this.list[0] && this.list[0].id === res.data.data.list[0].id) {
+                  this.list = res.data.data.list;
                 } else {
-                  for (let key in res.data.data) {
-                    this.list.push(res.data.data[key]);
+                  for (let key in res.data.data.list) {
+                    this.list.push(res.data.data.list[key]);
                   }
                 }
                 // this.list = this.list.concat(res.data.data);
@@ -540,6 +549,15 @@ export default {
               done && done();
             }
            console.log('this.list:', this,list);
+          } else if(res.data.code === 403 ) {
+            Dialog.alert({
+              title: "提示",
+              message: res.data.msg
+            }).then(() => {
+              this.$router.push({
+                name: 'login'
+              })
+            });
           } else {
             // this.hasData = 1;
             this.hasData = false;

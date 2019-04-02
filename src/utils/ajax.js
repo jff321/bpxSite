@@ -11,8 +11,8 @@ export default {
   install(Vue, options) {
     Vue.prototype.allConfig = {
       // apihttp: 'http://c.adbpx.com/api/manager/',
-      apihttp: 'http://test.bpx.adbpx.com/',
-      // apihttp: 'http://192.168.0.120/',
+      // apihttp: 'http://test.bpx.adbpx.com/',
+      apihttp: 'http://192.168.0.120/',
       sysTipsMsg: {
         error: '数据加载失败，请重试！'
       },

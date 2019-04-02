@@ -268,7 +268,9 @@ export default {
     // 获取多个手机号，用于拨打电话
     this.$get('client/phonelist', '', res => {
       this.phoneList = res.data.data;
-    });
+      // localStorage.setItem('dialedPhone', this.phoneList[this.selectPhone]);
+      this.$store.state.dailedPhone = this.phoneList[this.selectPhone];
+    })
   },
   watch: {
     $route(to, from) {
@@ -380,25 +382,27 @@ export default {
       // console.info("传出来的", value);
       // console.log(!value.phone);
       if (value.phone) {
-        this.isShowTip = true;
-        this.getTelephone(value.phone);
+        // this.isShowTip = true;
+        this.getTelephone(value.phone, value.id);
       }
 
       if (!value.phone) {
         this.$router.push("/customer/?id=" + value.id);
       }
     },
-    getTelephone(value) {
+    getTelephone(phone, id) {
       let params = {
-        phone: value,
-        userPhone: this.phoneList[this.selectPhone].phone
+        id: id,
+        phone: this.phoneList[this.selectPhone]
+        // userPhone: this.phoneList[this.selectPhone].phone
       };
-      this.$post("md5/phonebyaliaxb", params, result => {
-        console.info("获取到的数据ssss", result);
-        if (result.data.status === 1) {
-          this.telephone = result.data.data.phone;
+      this.$post("client/docall", params, result => {
+        // console.info("获取到的数据ssss", result);
+        if (result.data.code === 200) {
+          this.telephone = result.data.data;
           this.isShowTip = true;
         } else {
+          this.isShowTip = false;
           Dialog.alert({
             title: "提示",
             message: result.data.msg
@@ -485,12 +489,18 @@ export default {
                 this.loadinglayer[0].style.opacity = 0;
               }
             }
-          } else {
+          } else if(res.data.code === 403) {
             // this.hasData = 1;
             Dialog.alert({
               title: "提示",
               message: res.data.msg
+            }).then(()=>{
+              this.$router.push({
+                name: 'login'
+              })
             });
+          } else {
+            this.$status(res.data.msg)
           }
           console.info("页数", this.list);
         }

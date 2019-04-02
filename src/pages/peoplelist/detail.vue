@@ -7,41 +7,13 @@
           <img src="./imgs/head.png" alt>
         </div>
         <div class="header-tel">{{dataList.phone?tel(dataList.phone):'***********'}}</div>
-        <!--下拉展示基本信息-->
-        <!--<div class="header-date" @click="expand">-->
-          <!--<img-->
-            <!--v-if="showIcon"-->
-            <!--style="width: 12px;height: 12px;"-->
-            <!--src="./imgs/展开.png"-->
-            <!--alt="展开全部"-->
-          <!--&gt;-->
-        <!--</div>-->
-        <!--<div  v-if="showUserDetail">-->
-          <!--<div class="header-date" style="padding-left: 25px;padding-right: 25px;">-->
-              <!--<span-->
-                <!--v-for="(items,index) in basic"-->
-                <!--:key="index"-->
-                <!--v-if="items.value!==''"-->
-              <!--&gt;-->
-                <!--{{items.value}}-->
-              <!--</span>-->
-          <!--</div>-->
           <div class="header-date">最后探测 {{dataList.update_time}}</div>
-          <!--<div class="header-date">-->
-            <!--通话-->
-            <!--<span>0</span>分钟&nbsp;闪信-->
-            <!--<span>0</span>次&nbsp;短信-->
-            <!--<span>0</span>次-->
-          <!--</div>-->
-        <!--</div>-->
-        <div class="icon-telephone" @click="getTelephone(dataList.id)">
+        <div class="icon-telephone" @click="getTelephone()">
           <icon name="phone" scale="1.6"/>
         </div>
       </div>
     </div>
     <div class="equipment-list-box">
-      <!--<div class="telephonetip">请使用18245555555号码拨打，或点击修改</div>-->
-      <!--<div class="intention"><div class="intentionborder"><div class="circleicon"></div>无意向</div></div>-->
       <div class="equipment-list" style="border-radius: 3px 3px 0px 0px;">
         <div>使用设备</div>
         <div>{{dataList.phone_name}}</div>
@@ -101,43 +73,8 @@
           v-if="items.name!==''"
           v-bind:style="{backgroundColor:bgcolor[Math.floor(Math.random() * 8)]}"
         >{{items.name}}</span>
-      </div>
-    </div>
-    <div>
-      <!--<div class="common-app">-->
-      <!--<div class="app-title">常见App</div>-->
-      <!--<div class="app-list">-->
-      <!--<div class="app">-->
-      <!--<div class="app-img"></div>-->
-      <!--<div class="app-des ellipsis">UC浏览器</div>-->
-      <!--</div>-->
-      <!--<div class="app">-->
-      <!--<div class="app-img"></div>-->
-      <!--<div class="app-des ellipsis">UC浏览器</div>-->
-      <!--</div>-->
-      <!--<div class="app">-->
-      <!--<div class="app-img"></div>-->
-      <!--<div class="app-des ellipsis">UC浏览器</div>-->
-      <!--</div>-->
-      <!--<div class="app">-->
-      <!--<div class="app-img"></div>-->
-      <!--<div class="app-des ellipsis">UC浏览器</div>-->
-      <!--</div>-->
-      <!--<div class="app">-->
-      <!--<div class="app-img"></div>-->
-      <!--<div class="app-des ellipsis">UC浏览器</div>-->
-      <!--</div>-->
-      <!--<div class="app">-->
-      <!--<div class="app-img"></div>-->
-      <!--<div class="app-des ellipsis">UC浏览器</div>-->
-      <!--</div>-->
-      <!--<div class="app">-->
-      <!--<div class="app-img"></div>-->
-      <!--<div class="app-des ellipsis">UC浏览器</div>-->
-      <!--</div>-->
-      <!--</div>-->
-      <!--</div>-->
-    </div>
+       </div>
+     </div>
     <!--用户标记-->
     <div class="showUserTag" style="overflow: hidden;">
       <van-popup v-model="isShowUserTag" position="right" :overlay="false">
@@ -263,7 +200,7 @@ export default {
       this.getDataList();
     },
     $route(to, from) {
-      console.info("详情页面路由变化", to, from);
+      // console.info("详情页面路由变化", to.query, from);
       if (to.query.id && to.query.mac) {
         this.isShowUserTag = true;
         this.isShowTip = true;
@@ -284,20 +221,31 @@ export default {
       //   this.$emit("hideDetail");
       //   return;
       // }
-      console.info("返回时的路由", this.$route);
+      // console.info("返回时的路由", this.$route);
       this.$router.push(this.$route.path);
       this.showIcon = true;
       this.showUserDetail = false;
       // if () {}
     },
-    getTelephone(value) {
+    getTelephone() {
       // console.log('获取电话');
-      let params = {
-        id: value
-      };
-      this.$post("media/mac_phone", params, result => {
-        if (result.data.status === 1) {
-          this.telephone = result.data.data.phone;
+      let params;
+      if(this.$store.state.dailedPhone === "undefined"){
+        params = {
+          id: this.$route.query.id,
+          phone: localStorage.getItem('telephone')
+        };
+      } else {
+        params = {
+          id: this.$route.query.id,
+          phone: this.$store.state.dailedPhone
+        };
+      }
+
+      this.$post("client/docall", params, result => {
+        if (result.data.code === 200) {
+          console.log('result:', result);
+          this.telephone = result.data.data;
           this.isShowTip = true;
           // console.log('this.telephone:', this.telephone);
           if (this.routing.name === "peoplelistpackage") {
@@ -318,6 +266,7 @@ export default {
             );
           }
         } else {
+          this.isShowTip = false;
           Dialog.alert({
             title: "提示",
             message: result.data.msg

@@ -18,7 +18,7 @@
         var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
         link.type = 'image/x-icon';
         link.rel = 'shortcut icon';
-        this.axios.get('http://192.168.0.120/client/logo')
+        this.axios.get('http://test.bpx.adbpx.com/client/logo')
           .then((response) => {
             if(response.data.code === 200){
               link.href = response.data.data.logo_url;

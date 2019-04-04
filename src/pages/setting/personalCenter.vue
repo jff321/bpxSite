@@ -74,8 +74,9 @@
         <div class="imgBox">
           <!--<div class="img">-->
             <el-upload
+              :headers="myHeaders"
               class="avatar-uploader"
-              action="http://192.168.0.120/client/upload/image"
+              action="http://test.bpx.adbpx.com/client/upload/image"
               :show-file-list="false"
               accept="image/*"
               :on-preview="handlePictureCardPreview"
@@ -91,8 +92,9 @@
         <div class="imgBox">
           <!--<div class="img">-->
           <el-upload
+            :headers="myHeaders"
             class="avatar-uploader"
-            action="http://192.168.0.120/client/upload/image"
+            action="http://test.bpx.adbpx.com/client/upload/image"
             :show-file-list="false"
             accept="image/*"
             :on-success="handleAvatarSuccess2">
@@ -109,7 +111,7 @@
           <el-upload
             :headers="myHeaders"
             class="avatar-uploader"
-            action="http://192.168.0.120/client/upload/image"
+            action="http://test.bpx.adbpx.com/client/upload/image"
             :show-file-list="false"
             accept="image/*"
             :on-success="handleAvatarSuccess3">
@@ -207,19 +209,58 @@
       },
       // 上传营业执照
       handleAvatarSuccess(res, file) {
-        this.imageName = res.data.name;
-        this.imageUrl = res.data.big_url;
-        console.log('this.imageUrl服务器:', this.imageUrl);
+        if(res.code === 200){
+          this.imageName = res.data.name;
+          this.imageUrl = res.data.big_url;
+        } else if(res.code === 403){
+          Dialog.alert({
+            title: "提示",
+            message: res.msg
+          }).then(() => {
+            this.$router.push({
+              name: 'login'
+            })
+          });
+        } else {
+          this.$status(res.msg);
+        }
       },
       // 上传身份证
       handleAvatarSuccess2(res, file) {
-        this.idCardName = res.data.name;
-        this.idCardUrl = res.data.big_url;
+        if(res.code === 200){
+          this.idCardName = res.data.name;
+          this.idCardUrl = res.data.big_url;
+        } else if(res.code === 403){
+          Dialog.alert({
+            title: "提示",
+            message: res.msg
+          }).then(() => {
+            this.$router.push({
+              name: 'login'
+            })
+          });
+        } else {
+          this.$status(res.msg);
+        }
       },
       // 上传公司LOGO
       handleAvatarSuccess3(res, file) {
-        this.cardName = res.data.name;
-        this.cardUrl = res.data.big_url;
+        console.log('res:', res);
+        if(res.code === 200){
+          this.cardName = res.data.name;
+          this.cardUrl = res.data.big_url;
+        } else if(res.code === 403){
+          Dialog.alert({
+            title: "提示",
+            message: res.msg
+          }).then(() => {
+            this.$router.push({
+              name: 'login'
+            })
+          });
+        } else {
+          this.$status(res.msg);
+        }
       },
       // 清除多个手机号
       clearPhone2() {
@@ -319,7 +360,12 @@
               message: '修改成功！',
               type: 'success'
             });
-            this.onClickLeft();
+            this.$router.push({
+              name: 'setting',
+              params: {
+                logo_url: this.cardUrl
+              }
+            });
           } else {
             Dialog.alert({
               title: "提示",

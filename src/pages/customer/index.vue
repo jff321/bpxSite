@@ -267,9 +267,12 @@ export default {
     this.getDataList();
     // 获取多个手机号，用于拨打电话
     this.$get('client/phonelist', '', res => {
-      this.phoneList = res.data.data;
-      // localStorage.setItem('dialedPhone', this.phoneList[this.selectPhone]);
-      this.$store.state.dailedPhone = this.phoneList[this.selectPhone];
+      if(res.data.code === 200){
+        this.phoneList = res.data.data;
+        this.$store.state.dailedPhone = this.phoneList[this.selectPhone];
+      } else {
+        this.$status(res.data.msg);
+      }
     })
   },
   watch: {
@@ -399,7 +402,7 @@ export default {
       this.$post("client/docall", params, result => {
         // console.info("获取到的数据ssss", result);
         if (result.data.code === 200) {
-          this.telephone = result.data.data;
+          this.telephone = result.data.data.phone;
           this.isShowTip = true;
         } else {
           this.isShowTip = false;
@@ -435,7 +438,8 @@ export default {
       this.getDataList();
     },
     submitSelectPhone (value) {
-      console.log('this.selectPhone:', this.selectPhone);
+      this.$store.state.dailedPhone = this.phoneList[this.selectPhone];
+      // console.log('this.selectPhone:', this.selectPhone);
     },
     onSearch() {
       this.page = 1;

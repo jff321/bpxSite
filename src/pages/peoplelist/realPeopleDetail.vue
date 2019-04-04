@@ -249,7 +249,7 @@
         this.$post("client/docall", params, result => {
           if (result.data.code === 200) {
             console.log('result:', result);
-            this.telephone = result.data.data;
+            this.telephone = result.data.data.phone;
             this.isShowTip = true;
             // console.log('this.telephone:', this.telephone);
             if (this.routing.name === "peoplelistpackage") {

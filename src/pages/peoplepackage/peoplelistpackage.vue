@@ -410,13 +410,18 @@ export default {
     this.getBingding();
     // 获取多个手机号，用于拨打电话
     this.$get('client/phonelist', '', res => {
-      this.phoneList = res.data.data;
-      this.$store.state.dialedPhone = this.phoneList[this.selectPhone]
+      if(res.data.code === 200){
+        this.phoneList = res.data.data;
+        this.$store.state.dialedPhone = this.phoneList[this.selectPhone]
+      } else {
+        this.$status(res.data.msg);
+      }
     });
   },
   methods: {
     submitSelectPhone (value) {
-      console.log('this.selectPhone:', this.selectPhone);
+      // console.log('this.selectPhone:', this.selectPhone);
+      this.$store.state.dailedPhone = this.phoneList[this.selectPhone];
     },
     deletethis() {
       // 删除人群包
@@ -472,7 +477,7 @@ export default {
         if (result.data.code === 200) {
           // this.mac = mac;
           this.isShowTip = true;
-          this.telephone = result.data.data;
+          this.telephone = result.data.data.phone;
         } else {
           this.isShowTip = true;
           Dialog.alert({

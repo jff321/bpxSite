@@ -104,7 +104,7 @@ export default {
       this.user.company_name = '公司名称';
     }
     if (this.user.company_photo_url === 'null') {
-      this.user.company_photo_url = 'http://c.adbpx.com/images/20190108152433.jpg';
+      this.user.company_photo_url = this.$route.params.logo_url;
     }
   },
   methods: {
@@ -118,7 +118,7 @@ export default {
           this.$post('client/logout', localStorage.getItem('token'), (result) => {
             console.log('result:', result);
             if (result.data.code === 200) {
-              localStorage.clear();
+              localStorage.removeItem('token');
               this.$router.push("/login/index");
             } else {
               this.$status(result.data.msg);
